@@ -4,6 +4,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\FinanceRecordController;
 use App\Http\Controllers\Api\IncomeTargetController;
+use App\Http\Controllers\Api\LearningController;
+use App\Http\Controllers\Api\LifeScheduleController;
+use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\WorkPlanController;
 use App\Http\Controllers\Api\WorkTargetController;
 use Illuminate\Support\Facades\Route;
@@ -49,4 +52,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('work-plans/{workPlan}/toggle', [WorkPlanController::class, 'toggle']);
     Route::apiResource('work-plans', WorkPlanController::class)
         ->parameters(['work-plans' => 'workPlan']);
+
+    // Life schedules
+    Route::apiResource('life-schedules', LifeScheduleController::class)
+        ->parameters(['life-schedules' => 'lifeSchedule']);
+
+    // Notes
+    Route::post('notes/{note}/pin', [NoteController::class, 'togglePin']);
+    Route::apiResource('notes', NoteController::class);
+
+    // Learnings
+    Route::apiResource('learnings', LearningController::class);
 });

@@ -3,19 +3,25 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - {{ config('app.name', 'AlfaWeb') }}</title>
+    <title>Login - AlfaApps</title>
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon.png">
     <link rel="stylesheet" href="/assets/icons/fontawesome/css/all.min.css">
     <style>
         :root {
-            --primary: #ff3d1f;
-            --primary-dark: #d92b12;
-            --dark: #171725;
-            --muted: #7a7f91;
-            --border: #e7e9f2;
-            --surface: #ffffff;
-            --soft: #f5f7fb;
-            --danger: #f1416c;
+            --primary: #5B5FEF;
+            --primary-dark: #4347D6;
+            --primary-light: #8E91F4;
+            --coral: #FF6B81;
+            --orange: #FFA552;
+            --mint: #4FD1A5;
+            --bg: #F2F4F8;
+            --surface: #FFFFFF;
+            --surface-alt: #F7F8FB;
+            --text: #1F2233;
+            --muted: #7A7E92;
+            --border: #E5E7EE;
+            --danger: #EF4444;
+            --shadow: 0 24px 70px rgba(17, 26, 64, 0.12);
         }
 
         * {
@@ -25,11 +31,12 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            color: var(--dark);
+            color: var(--text);
+            font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at top left, rgba(255, 61, 31, 0.18), transparent 28rem),
-                linear-gradient(135deg, #fff7f4 0%, #f4f7ff 48%, #f8fafc 100%);
+                radial-gradient(circle at 12% 12%, rgba(91, 95, 239, 0.20), transparent 28rem),
+                radial-gradient(circle at 88% 14%, rgba(255, 107, 129, 0.18), transparent 24rem),
+                linear-gradient(135deg, #F6F7FF 0%, #F2F4F8 52%, #FFFFFF 100%);
         }
 
         a {
@@ -37,206 +44,299 @@
             text-decoration: none;
         }
 
-        .login-page {
+        button,
+        input {
+            font: inherit;
+        }
+
+        .page {
             min-height: 100vh;
             display: grid;
             place-items: center;
-            padding: 32px 18px;
+            padding: 28px;
         }
 
-        .login-shell {
-            width: min(1120px, 100%);
+        .shell {
+            width: min(1180px, 100%);
+            min-height: 700px;
             display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
-            min-height: 660px;
+            grid-template-columns: 1.02fr 0.98fr;
+            gap: 0;
             overflow: hidden;
-            border-radius: 34px;
-            background: var(--surface);
-            box-shadow: 0 28px 80px rgba(21, 31, 55, 0.14);
             border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: 36px;
+            background: rgba(255, 255, 255, 0.76);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
         }
 
-        .brand-panel {
+        .showcase {
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 46px;
-            color: #fff;
-            background:
-                linear-gradient(145deg, rgba(255, 61, 31, 0.96), rgba(209, 43, 18, 0.96)),
-                url('/assets/images/pattern/pattern1.png');
+            padding: 42px;
             overflow: hidden;
+            color: #fff;
+            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
         }
 
-        .brand-panel::before,
-        .brand-panel::after {
+        .showcase::before,
+        .showcase::after {
             content: "";
             position: absolute;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.13);
         }
 
-        .brand-panel::before {
-            width: 280px;
-            height: 280px;
-            right: -90px;
-            top: -80px;
+        .showcase::before {
+            width: 360px;
+            height: 360px;
+            top: -120px;
+            right: -110px;
         }
 
-        .brand-panel::after {
-            width: 210px;
-            height: 210px;
-            left: -70px;
-            bottom: -60px;
+        .showcase::after {
+            width: 250px;
+            height: 250px;
+            left: -88px;
+            bottom: -72px;
         }
 
-        .brand-link,
-        .hero-copy,
-        .feature-grid {
+        .brand,
+        .hero,
+        .preview {
             position: relative;
             z-index: 1;
         }
 
-        .brand-link {
+        .brand {
             display: inline-flex;
             align-items: center;
             gap: 14px;
-            font-weight: 800;
-            font-size: 24px;
+            width: fit-content;
+            font-weight: 900;
         }
 
         .brand-mark {
-            width: 54px;
-            height: 54px;
+            width: 56px;
+            height: 56px;
             display: grid;
             place-items: center;
-            border-radius: 18px;
-            background: #fff;
+            border-radius: 21px;
             color: var(--primary);
-            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.14);
+            background: #fff;
+            font-size: 23px;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.15);
         }
 
-        .hero-kicker {
-            margin: 0 0 16px;
-            font-size: 13px;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            opacity: 0.8;
-        }
-
-        .hero-title {
-            margin: 0 0 18px;
-            max-width: 430px;
-            font-size: clamp(34px, 5vw, 54px);
-            line-height: 1.02;
+        .brand-title {
+            display: block;
+            font-size: 25px;
             letter-spacing: -0.04em;
         }
 
-        .hero-text {
-            max-width: 430px;
+        .brand-subtitle {
+            display: block;
+            margin-top: 2px;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .hero {
+            max-width: 470px;
+        }
+
+        .kicker {
+            margin: 0 0 14px;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            margin: 0 0 18px;
+            font-size: clamp(38px, 5vw, 58px);
+            line-height: 1.02;
+            letter-spacing: -0.06em;
+        }
+
+        .hero p {
             margin: 0;
-            color: rgba(255, 255, 255, 0.84);
+            color: rgba(255, 255, 255, 0.82);
             font-size: 16px;
             line-height: 1.8;
         }
 
-        .feature-grid {
+        .preview {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 0.9fr 1.1fr;
             gap: 14px;
+            align-items: end;
         }
 
-        .feature-card {
-            padding: 18px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.16);
+        .metric-stack {
+            display: grid;
+            gap: 12px;
+        }
+
+        .metric {
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.13);
             backdrop-filter: blur(10px);
         }
 
-        .feature-card strong {
+        .metric small,
+        .metric strong {
             display: block;
-            margin-bottom: 4px;
-            font-size: 24px;
         }
 
-        .feature-card span {
+        .metric small {
+            color: rgba(255, 255, 255, 0.70);
+            font-weight: 800;
+        }
+
+        .metric strong {
+            margin-top: 7px;
+            font-size: 22px;
+        }
+
+        .phone-card {
+            min-height: 250px;
+            padding: 18px;
+            border-radius: 30px;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.93);
+            box-shadow: 0 26px 60px rgba(0, 0, 0, 0.18);
+        }
+
+        .phone-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .dot {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 15px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--coral), var(--orange));
+        }
+
+        .phone-title {
+            font-weight: 900;
+            letter-spacing: -0.03em;
+        }
+
+        .phone-line {
+            height: 12px;
+            margin-bottom: 10px;
+            border-radius: 999px;
+            background: var(--surface-alt);
+        }
+
+        .phone-line.short {
+            width: 64%;
+        }
+
+        .phone-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .phone-tile {
+            padding: 14px;
+            border-radius: 18px;
+            background: #EEF0FF;
+            color: var(--primary);
+            font-weight: 900;
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.78);
         }
 
         .form-panel {
-            display: flex;
-            align-items: center;
-            padding: 44px;
+            display: grid;
+            place-items: center;
+            padding: 42px;
+            background: rgba(255, 255, 255, 0.64);
         }
 
         .form-wrap {
             width: 100%;
-            max-width: 440px;
-            margin: 0 auto;
+            max-width: 430px;
         }
 
         .back-link {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 34px;
+            gap: 9px;
+            margin-bottom: 30px;
             color: var(--primary);
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 900;
         }
 
         .form-title {
             margin: 0 0 10px;
-            font-size: 34px;
-            letter-spacing: -0.03em;
+            font-size: clamp(32px, 4vw, 42px);
+            line-height: 1.05;
+            letter-spacing: -0.055em;
         }
 
         .form-subtitle {
-            margin: 0 0 28px;
+            margin: 0 0 24px;
             color: var(--muted);
-            line-height: 1.7;
+            line-height: 1.75;
         }
 
         .alert {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             padding: 13px 15px;
-            border-radius: 14px;
+            border-radius: 16px;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 800;
         }
 
         .alert-success {
-            color: #13795b;
-            background: #dcfce7;
+            color: #138A62;
+            background: #E9FBF4;
         }
 
         .alert-danger {
             color: var(--danger);
-            background: #fff0f4;
+            background: #FFF1F3;
         }
 
         .google-button,
         .submit-button {
             width: 100%;
-            min-height: 52px;
+            min-height: 54px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            border-radius: 16px;
+            border-radius: 18px;
             font-size: 15px;
-            font-weight: 800;
+            font-weight: 900;
             cursor: pointer;
             transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         }
 
         .google-button {
             border: 1px solid var(--border);
+            color: var(--text);
             background: #fff;
-            color: var(--dark);
-            box-shadow: 0 10px 24px rgba(21, 31, 55, 0.06);
+            box-shadow: 0 14px 32px rgba(17, 26, 64, 0.07);
         }
 
         .google-button:hover,
@@ -251,7 +351,7 @@
             margin: 24px 0;
             color: var(--muted);
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 900;
         }
 
         .divider::before,
@@ -263,15 +363,14 @@
         }
 
         .field {
-            margin-bottom: 18px;
+            margin-bottom: 17px;
         }
 
         .field label {
             display: block;
             margin-bottom: 8px;
-            color: var(--dark);
-            font-size: 14px;
-            font-weight: 800;
+            font-size: 13px;
+            font-weight: 900;
         }
 
         .input-wrap {
@@ -282,7 +381,7 @@
             position: absolute;
             left: 17px;
             top: 50%;
-            color: #9aa2b6;
+            color: #A3A8BB;
             transform: translateY(-50%);
         }
 
@@ -291,25 +390,24 @@
             min-height: 54px;
             padding: 0 16px 0 46px;
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 18px;
             outline: none;
-            background: var(--soft);
-            color: var(--dark);
-            font-size: 15px;
-            transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+            color: var(--text);
+            background: var(--surface-alt);
+            transition: 0.18s ease;
         }
 
         .input-wrap input:focus {
-            border-color: rgba(255, 61, 31, 0.5);
+            border-color: var(--primary);
             background: #fff;
-            box-shadow: 0 0 0 4px rgba(255, 61, 31, 0.1);
+            box-shadow: 0 0 0 4px rgba(91, 95, 239, 0.10);
         }
 
         .form-options {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 6px 0 22px;
+            margin: 4px 0 22px;
             color: var(--muted);
             font-size: 14px;
         }
@@ -331,87 +429,93 @@
             border: 0;
             color: #fff;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            box-shadow: 0 16px 34px rgba(255, 61, 31, 0.28);
+            box-shadow: 0 18px 36px rgba(91, 95, 239, 0.28);
         }
 
         .login-note {
-            margin-top: 22px;
+            margin: 22px 0 0;
             color: var(--muted);
             font-size: 13px;
             line-height: 1.7;
             text-align: center;
         }
 
-        @media (max-width: 900px) {
-            .login-shell {
+        @media (max-width: 980px) {
+            .shell {
                 grid-template-columns: 1fr;
                 min-height: auto;
-                border-radius: 26px;
             }
 
-            .brand-panel {
-                min-height: 320px;
-                padding: 30px;
-            }
-
-            .feature-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-
-            .form-panel {
-                padding: 30px;
+            .showcase {
+                gap: 34px;
+                min-height: 430px;
             }
         }
 
-        @media (max-width: 560px) {
-            .login-page {
+        @media (max-width: 620px) {
+            .page {
                 padding: 14px;
             }
 
-            .brand-panel {
+            .shell {
+                border-radius: 28px;
+            }
+
+            .showcase {
                 display: none;
             }
 
             .form-panel {
-                padding: 24px 20px;
-            }
-
-            .form-title {
-                font-size: 30px;
+                padding: 28px 20px;
             }
         }
     </style>
 </head>
 <body>
-    <main class="login-page">
-        <section class="login-shell">
-            <aside class="brand-panel">
-                <a href="{{ route('home') }}" class="brand-link">
+    <main class="page">
+        <section class="shell">
+            <aside class="showcase">
+                <a href="{{ route('home') }}" class="brand">
                     <span class="brand-mark">A</span>
                     <span>
-                        AlfaWeb
-                        <small style="display:block;font-size:13px;font-weight:600;opacity:.8">Finance Dashboard</small>
+                        <span class="brand-title">AlfaApps</span>
+                        <span class="brand-subtitle">Mobile app + Web dashboard</span>
                     </span>
                 </a>
 
-                <div class="hero-copy">
-                    <p class="hero-kicker">Web Dashboard</p>
-                    <h1 class="hero-title">Pantau keuangan dengan lebih rapi.</h1>
-                    <p class="hero-text">Masuk untuk melihat ringkasan pemasukan, pengeluaran, target pendapatan, dan aktivitas terbaru langsung dari browser.</p>
+                <div class="hero">
+                    <p class="kicker">Personal life manager</p>
+                    <h1>Satu data untuk Flutter dan Web.</h1>
+                    <p>Login ke versi web untuk mengelola keuangan, target pendapatan, rencana pekerjaan, target kerja, dan jadwal yang juga dipakai oleh aplikasi Flutter.</p>
                 </div>
 
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <strong>API</strong>
-                        <span>Sanctum ready</span>
+                <div class="preview">
+                    <div class="metric-stack">
+                        <div class="metric">
+                            <small>REST API</small>
+                            <strong>Sanctum</strong>
+                        </div>
+                        <div class="metric">
+                            <small>Google OAuth</small>
+                            <strong>Ready</strong>
+                        </div>
                     </div>
-                    <div class="feature-card">
-                        <strong>Web</strong>
-                        <span>Session login</span>
-                    </div>
-                    <div class="feature-card">
-                        <strong>G</strong>
-                        <span>Google auth</span>
+                    <div class="phone-card">
+                        <div class="phone-top">
+                            <span>
+                                <span class="phone-title">Diary</span>
+                                <small style="display:block;color:var(--muted);margin-top:3px">Ringkasan hari ini</small>
+                            </span>
+                            <span class="dot"><i class="fa-solid fa-plus"></i></span>
+                        </div>
+                        <div class="phone-line"></div>
+                        <div class="phone-line short"></div>
+                        <div class="phone-grid">
+                            <div class="phone-tile">Keuangan</div>
+                            <div class="phone-tile">Target</div>
+                            <div class="phone-tile">Rencana</div>
+                            <div class="phone-tile">Jadwal</div>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -423,8 +527,8 @@
                         Kembali ke beranda
                     </a>
 
-                    <h2 class="form-title">Masuk akun</h2>
-                    <p class="form-subtitle">Gunakan email dan password, atau masuk cepat memakai akun Google.</p>
+                    <h2 class="form-title">Masuk ke AlfaApps</h2>
+                    <p class="form-subtitle">Gunakan akun yang sama untuk dashboard web dan aplikasi Flutter.</p>
 
                     @if (session('status'))
                         <div class="alert alert-success">{{ session('status') }}</div>
@@ -444,7 +548,7 @@
                         Login dengan Google
                     </a>
 
-                    <div class="divider">atau login manual</div>
+                    <div class="divider">atau pakai email</div>
 
                     <form method="POST" action="{{ route('login.store') }}">
                         @csrf
@@ -477,7 +581,7 @@
                         </button>
                     </form>
 
-                    <p class="login-note">Pastikan Google Console memakai redirect URI: <strong>http://127.0.0.1:8000/auth/google/callback</strong></p>
+                    <p class="login-note">Untuk Google login, redirect URI: <strong>http://127.0.0.1:8000/auth/google/callback</strong></p>
                 </div>
             </section>
         </section>

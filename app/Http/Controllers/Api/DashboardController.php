@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\FinanceRecord;
 use App\Models\IncomeTarget;
+use App\Models\LifeSchedule;
 use App\Models\WorkPlan;
 use App\Models\WorkTarget;
 use Illuminate\Http\JsonResponse;
@@ -97,6 +98,12 @@ class DashboardController extends Controller
                         ->where('is_done', false)
                         ->whereNotNull('due_at')
                         ->whereDate('due_at', '<', $now->toDateString())
+                        ->count(),
+                ],
+                'schedule' => [
+                    'today_count' => LifeSchedule::where('user_id', $userId)
+                        ->get()
+                        ->filter(fn ($s) => $s->occursOn($now))
                         ->count(),
                 ],
             ],
