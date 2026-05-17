@@ -12,6 +12,7 @@ use App\Models\WorkPlan;
 use App\Models\WorkTarget;
 use App\Support\SharedData;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class WebApp extends Component
@@ -342,6 +343,21 @@ class WebApp extends Component
     {
         Vacation::where('user_id', auth()->id())->findOrFail($id)->delete();
         session()->flash('status', 'Rencana liburan dihapus.');
+    }
+
+    #[On('vacation-map-picked')]
+    public function setVacationCoordinates(float $latitude, float $longitude): void
+    {
+        $this->vacationLatitude = number_format($latitude, 7, '.', '');
+        $this->vacationLongitude = number_format($longitude, 7, '.', '');
+
+        if ($this->vacationMapUrl === '') {
+            $this->vacationMapUrl = sprintf(
+                'https://www.openstreetmap.org/?mlat=%1$.7f&mlon=%2$.7f#map=15/%1$.7f/%2$.7f',
+                $latitude,
+                $longitude,
+            );
+        }
     }
 
     public function storeShare(): void
