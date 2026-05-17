@@ -162,10 +162,47 @@
 
         @if ($page === 'data-sharing')
             <section class="grid-2">
-                <form class="form-card" wire:submit="storeShare"><h2>Berbagi data</h2><p>Masukkan email akun AlfaApps lain. Setelah aktif, kedua akun akan melihat gabungan data di dashboard, keuangan, target, rencana, dan jadwal.</p><div class="form-grid"><div class="field full"><label>Email pengguna</label><input wire:model="shareEmail" type="email" placeholder="nama@email.com" required></div><div class="field full"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-user-plus"></i>Aktifkan berbagi</button></div></div></form>
-                <article class="panel"><h2>Aturan akses</h2><p>Data bersama bisa dilihat kedua akun. Tambah, ubah, toggle, dan hapus tetap hanya untuk data milik akun sendiri.</p><div class="empty">Gunakan halaman ini untuk menghentikan akses kapan saja.</div></article>
+                <form class="form-card" wire:submit="storeShare">
+                    <h2>Berbagi data</h2>
+                    <p>Masukkan email akun AlfaApps lain. Setelah aktif, kedua akun akan melihat gabungan data di dashboard, keuangan, target, rencana, dan jadwal.</p>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label>Email pengguna</label>
+                            <input wire:model="shareEmail" type="email" placeholder="nama@email.com" required>
+                        </div>
+                        <div class="field full">
+                            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-user-plus"></i>Aktifkan berbagi</button>
+                        </div>
+                    </div>
+                </form>
+                <article class="panel">
+                    <h2>Aturan akses</h2>
+                    <p>Data bersama bisa dilihat kedua akun. Tambah, ubah, toggle, dan hapus tetap hanya untuk data milik akun sendiri.</p>
+                    <div class="empty">Gunakan halaman ini untuk menghentikan akses kapan saja.</div>
+                </article>
             </section>
-            <section style="margin-top:18px" class="panel"><h2>Akun terhubung</h2><div class="list" style="margin-top:14px">@forelse($shares as $share)@php $other = $share->owner_id === $user->id ? $share->sharedWith : $share->owner; @endphp<div class="item" wire:key="share-{{ $share->id }}"><div class="item-main"><strong>{{ $other->name }}</strong><span>{{ $other->email }} · aktif sejak {{ $share->created_at->format('d M Y') }}</span></div><div class="actions"><span class="badge b-mint">Terhubung</span><button class="btn btn-danger" wire:click="destroyShare({{ $share->id }})" wire:confirm="Hentikan berbagi data dengan akun ini?">Hapus</button></div></div>@empty<div class="empty">Belum ada akun yang dibagikan.</div>@endforelse</div></section>
+            <section style="margin-top:18px" class="panel">
+                <h2>Akun terhubung</h2>
+                <div class="list" style="margin-top:14px">
+                    @forelse($shares as $share)
+                        @php
+                            $other = $share->owner_id === $user->id ? $share->sharedWith : $share->owner;
+                        @endphp
+                        <div class="item" wire:key="share-{{ $share->id }}">
+                            <div class="item-main">
+                                <strong>{{ $other->name }}</strong>
+                                <span>{{ $other->email }} · aktif sejak {{ $share->created_at->format('d M Y') }}</span>
+                            </div>
+                            <div class="actions">
+                                <span class="badge b-mint">Terhubung</span>
+                                <button class="btn btn-danger" wire:click="destroyShare({{ $share->id }})" wire:confirm="Hentikan berbagi data dengan akun ini?">Hapus</button>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="empty">Belum ada akun yang dibagikan.</div>
+                    @endforelse
+                </div>
+            </section>
         @endif
         <div class="footer">Copyright © Designed & Developed by <span>AlfaApps</span> {{ now()->year }}</div>
         </div>
