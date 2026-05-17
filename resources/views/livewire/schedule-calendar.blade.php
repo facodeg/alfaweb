@@ -14,7 +14,7 @@
             </div>
         </div>
 
-        <div class="calendar-week">
+        <div class="calendar-week notranslate" translate="no">
             <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
         </div>
 
