@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\IncomeTargetController;
 use App\Http\Controllers\Api\LearningController;
 use App\Http\Controllers\Api\LifeScheduleController;
 use App\Http\Controllers\Api\NoteController;
+use App\Http\Controllers\Api\VacationController;
 use App\Http\Controllers\Api\WorkPlanController;
 use App\Http\Controllers\Api\WorkTargetController;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +63,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Life schedules
     Route::apiResource('life-schedules', LifeScheduleController::class)
         ->parameters(['life-schedules' => 'lifeSchedule']);
+
+    // Vacations
+    Route::apiResource('vacations', VacationController::class);
 
     // Notes
     Route::post('notes/{note}/pin', [NoteController::class, 'togglePin']);

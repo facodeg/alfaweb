@@ -7,6 +7,7 @@ use App\Models\IncomeTarget;
 use App\Models\LifeSchedule;
 use App\Models\DataShare;
 use App\Models\User;
+use App\Models\Vacation;
 use App\Models\WorkPlan;
 use App\Models\WorkTarget;
 use App\Support\SharedData;
@@ -38,6 +39,7 @@ class WebApp extends Component
     public string $workTargetDeadline = '';
     public string $workTargetStatus = 'on_progress';
     public int $workTargetProgress = 0;
+    public ?int $editingWorkTargetId = null;
 
     public ?int $workPlanTargetId = null;
     public string $workPlanTitle = '';
@@ -53,6 +55,19 @@ class WebApp extends Component
     public string $scheduleRepeat = 'none';
     public string $scheduleColor = '#5B5FEF';
     public string $shareEmail = '';
+
+    public string $vacationTitle = '';
+    public string $vacationDestination = '';
+    public string $vacationDescription = '';
+    public string $vacationStartDate = '';
+    public string $vacationEndDate = '';
+    public string $vacationBudget = '';
+    public string $vacationStatus = 'planned';
+    public string $vacationAddress = '';
+    public string $vacationLatitude = '';
+    public string $vacationLongitude = '';
+    public string $vacationMapUrl = '';
+    public string $vacationNotes = '';
 
     public function mount(string $page = 'dashboard', ?string $financeFilter = null, ?string $workTargetFilter = null, ?string $month = null): void
     {
@@ -140,13 +155,23 @@ class WebApp extends Component
 
     public function storeWorkTarget(): void
     {
-        $data = $this->validate([
-            'workTargetTitle' => ['required', 'string', 'max:255'],
-            'workTargetDescription' => ['nullable', 'string', 'max:5000'],
-            'workTargetDeadline' => ['nullable', 'date'],
-            'workTargetStatus' => ['nullable', 'in:pending,on_progress,done'],
-            'workTargetProgress' => ['nullable', 'integer', 'min:0', 'max:100'],
-        ]);
+        $data = $this->validateWorkTarget();
+
+        if ($this->editingWorkTargetId) {
+            $target = WorkTarget::where('user_id', auth()->id())->findOrFail($this->editingWorkTargetId);
+
+            $target->update([
+                'title' => $data['workTargetTitle'],
+                'description' => $data['workTargetDescription'],
+                'deadline' => $data['workTargetDeadline'] ?: null,
+                'status' => $data['workTargetStatus'],
+                'progress' => $data['workTargetProgress'],
+            ]);
+
+            $this->resetWorkTargetForm();
+            session()->flash('status', 'Target pekerjaan diperbarui.');
+            return;
+        }
 
         WorkTarget::create([
             'user_id' => auth()->id(),
@@ -157,16 +182,33 @@ class WebApp extends Component
             'progress' => $data['workTargetProgress'],
         ]);
 
-        $this->workTargetTitle = '';
-        $this->workTargetDescription = '';
-        $this->workTargetDeadline = '';
-        $this->workTargetProgress = 0;
+        $this->resetWorkTargetForm();
         session()->flash('status', 'Target pekerjaan tersimpan.');
+    }
+
+    public function editWorkTarget(int $id): void
+    {
+        $target = WorkTarget::where('user_id', auth()->id())->findOrFail($id);
+
+        $this->editingWorkTargetId = $target->id;
+        $this->workTargetTitle = $target->title;
+        $this->workTargetDescription = $target->description ?? '';
+        $this->workTargetDeadline = $target->deadline?->toDateString() ?? '';
+        $this->workTargetStatus = $target->status;
+        $this->workTargetProgress = (int) $target->progress;
+    }
+
+    public function cancelWorkTargetEdit(): void
+    {
+        $this->resetWorkTargetForm();
     }
 
     public function destroyWorkTarget(int $id): void
     {
         WorkTarget::where('user_id', auth()->id())->findOrFail($id)->delete();
+        if ($this->editingWorkTargetId === $id) {
+            $this->resetWorkTargetForm();
+        }
         session()->flash('status', 'Target pekerjaan dihapus.');
     }
 
@@ -251,6 +293,57 @@ class WebApp extends Component
         session()->flash('status', 'Jadwal dihapus.');
     }
 
+    public function storeVacation(): void
+    {
+        $data = $this->validate([
+            'vacationTitle' => ['required', 'string', 'max:255'],
+            'vacationDestination' => ['required', 'string', 'max:255'],
+            'vacationDescription' => ['nullable', 'string', 'max:5000'],
+            'vacationStartDate' => ['nullable', 'date'],
+            'vacationEndDate' => ['nullable', 'date', 'after_or_equal:vacationStartDate'],
+            'vacationBudget' => ['nullable', 'numeric', 'min:0'],
+            'vacationStatus' => ['nullable', 'in:planned,booked,ongoing,completed,cancelled'],
+            'vacationAddress' => ['nullable', 'string', 'max:255'],
+            'vacationLatitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'vacationLongitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'vacationMapUrl' => ['nullable', 'string', 'max:1000'],
+            'vacationNotes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        Vacation::create([
+            'user_id' => auth()->id(),
+            'title' => $data['vacationTitle'],
+            'destination' => $data['vacationDestination'],
+            'description' => $data['vacationDescription'],
+            'start_date' => $data['vacationStartDate'] ?: null,
+            'end_date' => $data['vacationEndDate'] ?: null,
+            'budget' => $data['vacationBudget'] !== '' ? $data['vacationBudget'] : null,
+            'status' => $data['vacationStatus'],
+            'address' => $data['vacationAddress'],
+            'latitude' => $data['vacationLatitude'] !== '' ? $data['vacationLatitude'] : null,
+            'longitude' => $data['vacationLongitude'] !== '' ? $data['vacationLongitude'] : null,
+            'map_url' => $data['vacationMapUrl'],
+            'notes' => $data['vacationNotes'],
+        ]);
+
+        $this->vacationTitle = '';
+        $this->vacationDestination = '';
+        $this->vacationDescription = '';
+        $this->vacationBudget = '';
+        $this->vacationAddress = '';
+        $this->vacationLatitude = '';
+        $this->vacationLongitude = '';
+        $this->vacationMapUrl = '';
+        $this->vacationNotes = '';
+        session()->flash('status', 'Rencana liburan tersimpan.');
+    }
+
+    public function destroyVacation(int $id): void
+    {
+        Vacation::where('user_id', auth()->id())->findOrFail($id)->delete();
+        session()->flash('status', 'Rencana liburan dihapus.');
+    }
+
     public function storeShare(): void
     {
         $this->shareEmail = strtolower(trim($this->shareEmail));
@@ -324,6 +417,7 @@ class WebApp extends Component
             'allWorkTargets' => WorkTarget::where('user_id', $user->id)->latest('updated_at')->get(),
             'workPlans' => WorkPlan::with('workTarget')->whereIn('user_id', $this->visibleUserIds())->orderBy('is_done')->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")->orderByRaw('due_at IS NULL')->orderBy('due_at')->get(),
             'schedules' => LifeSchedule::whereIn('user_id', $this->visibleUserIds())->orderBy('start_at')->get(),
+            'vacations' => $this->vacations(),
             'shares' => $this->shares(),
         ];
     }
@@ -347,6 +441,7 @@ class WebApp extends Component
             'plans_today' => WorkPlan::whereIn('user_id', $userIds)->where('is_done', false)->whereDate('due_at', $now->toDateString())->count(),
             'plans_overdue' => WorkPlan::whereIn('user_id', $userIds)->where('is_done', false)->whereNotNull('due_at')->whereDate('due_at', '<', $now->toDateString())->count(),
             'today_schedule_count' => LifeSchedule::whereIn('user_id', $userIds)->get()->filter(fn (LifeSchedule $schedule) => $schedule->occursOn($now))->count(),
+            'upcoming_vacations' => Vacation::whereIn('user_id', $userIds)->whereIn('status', ['planned', 'booked', 'ongoing'])->count(),
         ];
     }
 
@@ -422,6 +517,36 @@ class WebApp extends Component
         return $query->get();
     }
 
+    private function validateWorkTarget(): array
+    {
+        return $this->validate([
+            'workTargetTitle' => ['required', 'string', 'max:255'],
+            'workTargetDescription' => ['nullable', 'string', 'max:5000'],
+            'workTargetDeadline' => ['nullable', 'date'],
+            'workTargetStatus' => ['nullable', 'in:pending,on_progress,done'],
+            'workTargetProgress' => ['nullable', 'integer', 'min:0', 'max:100'],
+        ]);
+    }
+
+    private function resetWorkTargetForm(): void
+    {
+        $this->editingWorkTargetId = null;
+        $this->workTargetTitle = '';
+        $this->workTargetDescription = '';
+        $this->workTargetDeadline = '';
+        $this->workTargetStatus = 'on_progress';
+        $this->workTargetProgress = 0;
+    }
+
+    private function vacations(): Collection
+    {
+        return Vacation::whereIn('user_id', $this->visibleUserIds())
+            ->orderByRaw("CASE status WHEN 'ongoing' THEN 1 WHEN 'booked' THEN 2 WHEN 'planned' THEN 3 WHEN 'completed' THEN 4 ELSE 5 END")
+            ->orderByRaw('start_date IS NULL')
+            ->orderBy('start_date')
+            ->get();
+    }
+
     private function resetFormDates(): void
     {
         $this->financeOccurredAt = now()->format('Y-m-d\TH:i');
@@ -429,6 +554,8 @@ class WebApp extends Component
         $this->incomePeriodEnd = now()->endOfMonth()->toDateString();
         $this->scheduleStartAt = now()->format('Y-m-d\TH:i');
         $this->scheduleEndAt = now()->addHour()->format('Y-m-d\TH:i');
+        $this->vacationStartDate = now()->toDateString();
+        $this->vacationEndDate = now()->addDay()->toDateString();
     }
 
     /** @return array<int> */

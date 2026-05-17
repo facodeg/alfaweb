@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FinanceRecord;
 use App\Models\IncomeTarget;
 use App\Models\LifeSchedule;
+use App\Models\Vacation;
 use App\Models\WorkPlan;
 use App\Models\WorkTarget;
 use App\Support\SharedData;
@@ -105,6 +106,11 @@ class DashboardController extends Controller
                     'today_count' => LifeSchedule::whereIn('user_id', $userIds)
                         ->get()
                         ->filter(fn ($s) => $s->occursOn($now))
+                        ->count(),
+                ],
+                'vacations' => [
+                    'upcoming_count' => Vacation::whereIn('user_id', $userIds)
+                        ->whereIn('status', ['planned', 'booked', 'ongoing'])
                         ->count(),
                 ],
             ],
