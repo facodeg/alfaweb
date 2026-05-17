@@ -8,6 +8,16 @@ use RuntimeException;
 
 class OpenRouterService
 {
+    public function testConnection(): string
+    {
+        $data = $this->completeJson(
+            'Anda adalah health check API. Balas hanya JSON valid tanpa markdown.',
+            'Balas JSON: {"ok": true, "message": "OpenRouter aktif"}',
+        );
+
+        return (string) ($data['message'] ?? 'OpenRouter aktif.');
+    }
+
     public function generateFormDraft(string $module, string $prompt): array
     {
         $schema = $this->formSchemas()[$module] ?? null;

@@ -59,6 +59,7 @@ class WebApp extends Component
     public string $aiModel = 'openai/gpt-4o-mini';
     public string $aiBaseUrl = 'https://openrouter.ai/api/v1';
     public string $aiApiKey = '';
+    public string $aiTestResult = '';
 
     public string $scheduleTitle = '';
     public string $scheduleDescription = '';
@@ -345,30 +346,24 @@ class WebApp extends Component
 
     public function saveAiSettings(): void
     {
-        $data = $this->validate([
-            'aiEnabled' => ['boolean'],
-            'aiModel' => ['required', 'string', 'max:255'],
-            'aiBaseUrl' => ['required', 'url', 'max:255'],
-            'aiApiKey' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        $settings = AiSetting::current();
-        $payload = [
-            'enabled' => $data['aiEnabled'],
-            'provider' => 'openrouter',
-            'base_url' => rtrim($data['aiBaseUrl'], '/'),
-            'model' => $data['aiModel'],
-        ];
-
-        if ($data['aiApiKey'] !== '') {
-            $payload['api_key'] = $data['aiApiKey'];
-        }
-
-        $settings->update($payload);
-        $this->aiApiKey = '';
-        $this->loadAiSettings();
+        $this->persistAiSettings();
 
         session()->flash('status', 'Pengaturan AI tersimpan di database.');
+    }
+
+    public function testAiSettings(): void
+    {
+        $this->persistAiSettings();
+
+        try {
+            $message = app(OpenRouterService::class)->testConnection();
+        } catch (RuntimeException $exception) {
+            $this->aiTestResult = 'Gagal: ' . $exception->getMessage();
+            return;
+        }
+
+        $this->aiTestResult = 'Berhasil: ' . $message;
+        session()->flash('status', 'Test API OpenRouter berhasil.');
     }
 
     public function storeSchedule(): void
@@ -829,6 +824,32 @@ class WebApp extends Component
             ->orWhere('shared_with_id', auth()->id())
             ->latest()
             ->get();
+    }
+
+    private function persistAiSettings(): void
+    {
+        $data = $this->validate([
+            'aiEnabled' => ['boolean'],
+            'aiModel' => ['required', 'string', 'max:255'],
+            'aiBaseUrl' => ['required', 'url', 'max:255'],
+            'aiApiKey' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $settings = AiSetting::current();
+        $payload = [
+            'enabled' => $data['aiEnabled'],
+            'provider' => 'openrouter',
+            'base_url' => rtrim($data['aiBaseUrl'], '/'),
+            'model' => $data['aiModel'],
+        ];
+
+        if ($data['aiApiKey'] !== '') {
+            $payload['api_key'] = $data['aiApiKey'];
+        }
+
+        $settings->update($payload);
+        $this->aiApiKey = '';
+        $this->loadAiSettings();
     }
 
     private function loadAiSettings(): void

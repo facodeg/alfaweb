@@ -361,8 +361,16 @@
                             <input wire:model="aiBaseUrl" placeholder="https://openrouter.ai/api/v1">
                         </div>
                         <div class="field full">
-                            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i>Simpan pengaturan AI</button>
+                            <div class="actions">
+                                <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i>Simpan pengaturan AI</button>
+                                <button class="btn btn-soft" type="button" wire:click="testAiSettings"><i class="fa-solid fa-plug-circle-check"></i>Simpan & Test API</button>
+                            </div>
                         </div>
+                        @if($aiTestResult)
+                            <div class="field full">
+                                <div class="notice">{{ $aiTestResult }}</div>
+                            </div>
+                        @endif
                     </div>
                 </form>
                 <article class="panel">
