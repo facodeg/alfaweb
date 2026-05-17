@@ -32,12 +32,12 @@
         </nav>
         <form method="POST" action="{{ route('logout') }}">@csrf<button class="logout" type="submit"><i class="fa-solid fa-right-from-bracket"></i>Logout</button></form>
     </aside>
-    <button class="sidebar-backdrop" type="button" aria-label="Tutup menu"></button>
+    <button class="sidebar-backdrop" type="button" aria-label="Tutup menu" data-sidebar-close></button>
 
     <main class="main">
         <header class="topbar">
             <div class="topbar-left">
-                <button class="hamburger" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
+                <button class="hamburger" type="button" aria-label="Menu" data-sidebar-toggle><span></span><span></span><span></span></button>
                 <p class="eyebrow">{{ now()->translatedFormat('l, d F Y') }}</p>
                 <h1 class="title">{{ $page === 'dashboard' ? 'Diary' : collect($nav)->firstWhere('key', $page)['label'] ?? 'AlfaWeb' }}</h1>
                 <label class="search-box">
@@ -58,6 +58,8 @@
 
         @if (session('status'))<div class="notice">{{ session('status') }}</div>@endif
         @if ($errors->any())<div class="errors">{{ $errors->first() }}</div>@endif
+
+        <div class="mobile-page-title">{{ $page === 'dashboard' ? 'Diary' : collect($nav)->firstWhere('key', $page)['label'] ?? 'AlfaWeb' }}</div>
 
         <section class="stats">
             <article class="card stat"><div class="stat-head"><span>Saldo bulan ini</span><i class="icon i-primary fa-solid fa-wallet"></i></div><div class="stat-value">{{ $money($summary['month_balance']) }}</div></article>
