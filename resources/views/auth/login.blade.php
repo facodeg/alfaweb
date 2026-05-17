@@ -8,20 +8,20 @@
     <link rel="stylesheet" href="/assets/icons/fontawesome/css/all.min.css">
     <style>
         :root {
-            --primary: #5B5FEF;
-            --primary-dark: #4347D6;
-            --primary-light: #8E91F4;
-            --coral: #FF6B81;
-            --orange: #FFA552;
-            --mint: #4FD1A5;
-            --bg: #F2F4F8;
+            --primary: #0A7C6E;
+            --primary-dark: #075f54;
+            --primary-light: #0d9b89;
+            --coral: #FF6B35;
+            --orange: #F59E0B;
+            --mint: #0A7C6E;
+            --bg: #FAFAFA;
             --surface: #FFFFFF;
             --surface-alt: #F7F8FB;
             --text: #1F2233;
             --muted: #7A7E92;
             --border: #E5E7EE;
             --danger: #EF4444;
-            --shadow: 0 24px 70px rgba(17, 26, 64, 0.12);
+            --shadow: 0 24px 70px rgba(10, 124, 110, 0.14);
         }
 
         * {
@@ -34,9 +34,9 @@
             color: var(--text);
             font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at 12% 12%, rgba(91, 95, 239, 0.20), transparent 28rem),
-                radial-gradient(circle at 88% 14%, rgba(255, 107, 129, 0.18), transparent 24rem),
-                linear-gradient(135deg, #F6F7FF 0%, #F2F4F8 52%, #FFFFFF 100%);
+                radial-gradient(circle at 12% 12%, rgba(10, 124, 110, 0.20), transparent 28rem),
+                radial-gradient(circle at 88% 14%, rgba(245, 158, 11, 0.20), transparent 24rem),
+                linear-gradient(135deg, #FAFAFA 0%, #f2faf7 52%, #fff7eb 100%);
         }
 
         a {
