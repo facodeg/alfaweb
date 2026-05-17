@@ -107,7 +107,7 @@
             <section style="margin-top:18px" class="panel"><h2>Semua jadwal</h2><div class="list" style="margin-top:14px">@forelse($schedules as $schedule)<div class="item" wire:key="schedule-{{ $schedule->id }}"><div class="item-main"><strong>{{ $schedule->title }}</strong><span>{{ $schedule->category ?: 'Tanpa kategori' }} · {{ $schedule->start_at->format('d M Y H:i') }}</span></div><div class="actions"><span class="badge b-primary">{{ $schedule->repeat }}</span><button class="btn btn-danger" wire:click="destroySchedule({{ $schedule->id }})" wire:confirm="Hapus jadwal ini?">Hapus</button></div></div>@empty<div class="empty">Belum ada jadwal.</div>@endforelse</div></section>
         @endif
 
-        @if ($page === 'vacations')
+        <?php if ($page === 'vacations'): ?>
             @php
                 $vacationMarkers = $vacations
                     ->filter(fn ($vacation) => $vacation->latitude !== null && $vacation->longitude !== null)
@@ -158,7 +158,7 @@
                     <div class="panel"><div class="empty">Belum ada rencana liburan.</div></div>
                 @endforelse
             </section>
-        @endif
+        <?php endif; ?>
 
         @if ($page === 'data-sharing')
             <section class="grid-2">
