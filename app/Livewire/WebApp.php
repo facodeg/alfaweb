@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Vacation;
 use App\Models\WorkPlan;
 use App\Models\WorkTarget;
+use App\Models\WorkTargetChangeRequest;
 use App\Support\SharedData;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\On;
@@ -41,6 +42,7 @@ class WebApp extends Component
     public string $workTargetStatus = 'on_progress';
     public int $workTargetProgress = 0;
     public ?int $editingWorkTargetId = null;
+    public bool $editingSharedWorkTarget = false;
 
     public ?int $workPlanTargetId = null;
     public string $workPlanTitle = '';
@@ -159,15 +161,26 @@ class WebApp extends Component
         $data = $this->validateWorkTarget();
 
         if ($this->editingWorkTargetId) {
-            $target = WorkTarget::where('user_id', auth()->id())->findOrFail($this->editingWorkTargetId);
+            $target = WorkTarget::whereIn('user_id', $this->visibleUserIds())->findOrFail($this->editingWorkTargetId);
 
-            $target->update([
-                'title' => $data['workTargetTitle'],
-                'description' => $data['workTargetDescription'],
-                'deadline' => $data['workTargetDeadline'] ?: null,
-                'status' => $data['workTargetStatus'],
-                'progress' => $data['workTargetProgress'],
-            ]);
+            if ($target->user_id !== auth()->id()) {
+                WorkTargetChangeRequest::updateOrCreate(
+                    [
+                        'work_target_id' => $target->id,
+                        'requested_by_id' => auth()->id(),
+                        'status' => 'pending',
+                    ],
+                    [
+                        'proposed_changes' => $this->workTargetPayload($data),
+                    ],
+                );
+
+                $this->resetWorkTargetForm();
+                session()->flash('status', 'Perubahan target pekerjaan diajukan dan menunggu persetujuan pemilik.');
+                return;
+            }
+
+            $target->update($this->workTargetPayload($data));
 
             $this->resetWorkTargetForm();
             session()->flash('status', 'Target pekerjaan diperbarui.');
@@ -189,9 +202,10 @@ class WebApp extends Component
 
     public function editWorkTarget(int $id): void
     {
-        $target = WorkTarget::where('user_id', auth()->id())->findOrFail($id);
+        $target = WorkTarget::whereIn('user_id', $this->visibleUserIds())->findOrFail($id);
 
         $this->editingWorkTargetId = $target->id;
+        $this->editingSharedWorkTarget = $target->user_id !== auth()->id();
         $this->workTargetTitle = $target->title;
         $this->workTargetDescription = $target->description ?? '';
         $this->workTargetDeadline = $target->deadline?->toDateString() ?? '';
@@ -211,6 +225,41 @@ class WebApp extends Component
             $this->resetWorkTargetForm();
         }
         session()->flash('status', 'Target pekerjaan dihapus.');
+    }
+
+    public function approveWorkTargetChangeRequest(int $id): void
+    {
+        $request = WorkTargetChangeRequest::with('workTarget')
+            ->where('status', 'pending')
+            ->findOrFail($id);
+
+        abort_unless($request->workTarget->user_id === auth()->id(), 403);
+
+        $request->workTarget->update($request->proposed_changes);
+        $request->update([
+            'status' => 'approved',
+            'reviewed_by_id' => auth()->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        session()->flash('status', 'Perubahan target pekerjaan disetujui.');
+    }
+
+    public function rejectWorkTargetChangeRequest(int $id): void
+    {
+        $request = WorkTargetChangeRequest::with('workTarget')
+            ->where('status', 'pending')
+            ->findOrFail($id);
+
+        abort_unless($request->workTarget->user_id === auth()->id(), 403);
+
+        $request->update([
+            'status' => 'rejected',
+            'reviewed_by_id' => auth()->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        session()->flash('status', 'Perubahan target pekerjaan ditolak.');
     }
 
     public function storeWorkPlan(): void
@@ -432,6 +481,8 @@ class WebApp extends Component
             'financeTotals' => $this->financeTotals(),
             'targets' => $this->incomeTargets(),
             'workTargets' => $this->workTargets(),
+            'workTargetChangeRequests' => $this->workTargetChangeRequests(),
+            'myPendingWorkTargetRequests' => $this->myPendingWorkTargetRequests(),
             'allWorkTargets' => WorkTarget::where('user_id', $user->id)->latest('updated_at')->get(),
             'workPlans' => WorkPlan::with('workTarget')->whereIn('user_id', $this->visibleUserIds())->orderBy('is_done')->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")->orderByRaw('due_at IS NULL')->orderBy('due_at')->get(),
             'schedules' => LifeSchedule::whereIn('user_id', $this->visibleUserIds())->orderBy('start_at')->get(),
@@ -546,9 +597,21 @@ class WebApp extends Component
         ]);
     }
 
+    private function workTargetPayload(array $data): array
+    {
+        return [
+            'title' => $data['workTargetTitle'],
+            'description' => $data['workTargetDescription'],
+            'deadline' => $data['workTargetDeadline'] ?: null,
+            'status' => $data['workTargetStatus'],
+            'progress' => $data['workTargetProgress'],
+        ];
+    }
+
     private function resetWorkTargetForm(): void
     {
         $this->editingWorkTargetId = null;
+        $this->editingSharedWorkTarget = false;
         $this->workTargetTitle = '';
         $this->workTargetDescription = '';
         $this->workTargetDeadline = '';
@@ -562,6 +625,24 @@ class WebApp extends Component
             ->orderByRaw("CASE status WHEN 'ongoing' THEN 1 WHEN 'booked' THEN 2 WHEN 'planned' THEN 3 WHEN 'completed' THEN 4 ELSE 5 END")
             ->orderByRaw('start_date IS NULL')
             ->orderBy('start_date')
+            ->get();
+    }
+
+    private function workTargetChangeRequests(): Collection
+    {
+        return WorkTargetChangeRequest::with(['workTarget', 'requestedBy'])
+            ->where('status', 'pending')
+            ->whereHas('workTarget', fn ($query) => $query->where('user_id', auth()->id()))
+            ->latest()
+            ->get();
+    }
+
+    private function myPendingWorkTargetRequests(): Collection
+    {
+        return WorkTargetChangeRequest::with('workTarget')
+            ->where('status', 'pending')
+            ->where('requested_by_id', auth()->id())
+            ->latest()
             ->get();
     }
 

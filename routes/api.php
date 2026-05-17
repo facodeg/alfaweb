@@ -52,6 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->parameters(['income-targets' => 'incomeTarget']);
 
     // Work targets
+    Route::get('work-target-change-requests', [WorkTargetController::class, 'changeRequests']);
+    Route::post('work-target-change-requests/{changeRequest}/approve', [WorkTargetController::class, 'approveChangeRequest']);
+    Route::post('work-target-change-requests/{changeRequest}/reject', [WorkTargetController::class, 'rejectChangeRequest']);
     Route::apiResource('work-targets', WorkTargetController::class)
         ->parameters(['work-targets' => 'workTarget']);
 

@@ -34,4 +34,9 @@ class WorkTarget extends Model
     {
         return $this->hasMany(WorkPlan::class);
     }
+
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(WorkTargetChangeRequest::class);
+    }
 }

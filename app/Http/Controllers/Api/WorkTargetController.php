@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\WorkTarget;
+use App\Models\WorkTargetChangeRequest;
 use App\Support\SharedData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -54,8 +55,27 @@ class WorkTargetController extends Controller
 
     public function update(Request $request, WorkTarget $workTarget): JsonResponse
     {
-        $this->authorizeOwner($request, $workTarget);
-        $workTarget->update($this->validateData($request, partial: true));
+        $this->authorizeVisible($request, $workTarget);
+        $data = $this->validateData($request, partial: true);
+
+        if ($workTarget->user_id !== $request->user()->id) {
+            $changeRequest = WorkTargetChangeRequest::updateOrCreate(
+                [
+                    'work_target_id' => $workTarget->id,
+                    'requested_by_id' => $request->user()->id,
+                    'status' => 'pending',
+                ],
+                ['proposed_changes' => $data],
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Perubahan diajukan dan menunggu persetujuan pemilik.',
+                'data' => $changeRequest->load(['workTarget', 'requestedBy']),
+            ], 202);
+        }
+
+        $workTarget->update($data);
 
         return response()->json([
             'success' => true,
@@ -72,6 +92,60 @@ class WorkTargetController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Target dihapus.',
+        ]);
+    }
+
+    public function changeRequests(Request $request): JsonResponse
+    {
+        $changeRequests = WorkTargetChangeRequest::with(['workTarget', 'requestedBy'])
+            ->where('status', 'pending')
+            ->whereHas('workTarget', fn ($query) => $query->where('user_id', $request->user()->id))
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OK',
+            'data' => $changeRequests,
+        ]);
+    }
+
+    public function approveChangeRequest(Request $request, WorkTargetChangeRequest $changeRequest): JsonResponse
+    {
+        $changeRequest->load('workTarget');
+        abort_unless($changeRequest->status === 'pending', 404);
+        abort_unless($changeRequest->workTarget->user_id === $request->user()->id, 403, 'Bukan pemilik target.');
+
+        $changeRequest->workTarget->update($changeRequest->proposed_changes);
+        $changeRequest->update([
+            'status' => 'approved',
+            'reviewed_by_id' => $request->user()->id,
+            'reviewed_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perubahan disetujui.',
+            'data' => $changeRequest->load(['workTarget', 'requestedBy']),
+        ]);
+    }
+
+    public function rejectChangeRequest(Request $request, WorkTargetChangeRequest $changeRequest): JsonResponse
+    {
+        $changeRequest->load('workTarget');
+        abort_unless($changeRequest->status === 'pending', 404);
+        abort_unless($changeRequest->workTarget->user_id === $request->user()->id, 403, 'Bukan pemilik target.');
+
+        $changeRequest->update([
+            'status' => 'rejected',
+            'reviewed_by_id' => $request->user()->id,
+            'reviewed_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perubahan ditolak.',
+            'data' => $changeRequest->load(['workTarget', 'requestedBy']),
         ]);
     }
 
