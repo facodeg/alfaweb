@@ -15,8 +15,12 @@
     <aside class="sidebar">
         <a class="brand" href="{{ route('dashboard') }}" wire:navigate>
             <span class="brand-mark">A</span>
-            <span><span class="brand-title">AlfaApps</span><span class="brand-sub">Livewire + REST API</span></span>
+            <span><span class="brand-title">AlfaApps</span><span class="brand-sub">Personal Dashboard</span></span>
         </a>
+        <div class="sidebar-profile">
+            <span class="sidebar-avatar">@if($user->avatar)<img src="{{ $user->avatar }}" alt="{{ $user->name }}">@else{{ strtoupper(substr($user->name,0,1)) }}@endif</span>
+            <span><strong>{{ $user->name }}</strong><span>{{ $user->email }}</span></span>
+        </div>
         <nav class="nav">
             @foreach ($nav as $item)
                 <a class="{{ $active($item['key']) }}" href="{{ $item['route'] }}" wire:navigate><i class="fa-solid {{ $item['icon'] }}"></i>{{ $item['label'] }}</a>
@@ -27,15 +31,25 @@
 
     <main class="main">
         <header class="topbar">
-            <div>
+            <div class="topbar-left">
+                <button class="hamburger" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
                 <p class="eyebrow">{{ now()->translatedFormat('l, d F Y') }}</p>
                 <h1 class="title">{{ $page === 'dashboard' ? 'Diary' : collect($nav)->firstWhere('key', $page)['label'] ?? 'AlfaWeb' }}</h1>
+                <label class="search-box">
+                    <input type="search" placeholder="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </label>
             </div>
-            <div class="profile">
-                <span class="avatar">@if($user->avatar)<img src="{{ $user->avatar }}" alt="{{ $user->name }}">@else{{ strtoupper(substr($user->name,0,1)) }}@endif</span>
-                <span><strong>{{ $user->name }}</strong><span>{{ $user->email }}</span></span>
+            <div class="top-actions">
+                <button class="icon-button add" type="button" aria-label="Tambah"><i class="fa-solid fa-plus"></i></button>
+                <button class="icon-button" type="button" aria-label="Mode"><i class="fa-solid fa-moon"></i></button>
+                <button class="icon-button" type="button" aria-label="Pesan"><i class="fa-regular fa-message"></i><span class="notif">{{ $summary['plans_today'] }}</span></button>
+                <button class="icon-button" type="button" aria-label="Notifikasi"><i class="fa-regular fa-bell"></i><span class="notif">{{ $summary['today_schedule_count'] }}</span></button>
+                <form method="POST" action="{{ route('logout') }}">@csrf<button class="login-pill" type="submit">Logout</button></form>
             </div>
         </header>
+
+        <div class="content">
 
         @if (session('status'))<div class="notice">{{ session('status') }}</div>@endif
         @if ($errors->any())<div class="errors">{{ $errors->first() }}</div>@endif
@@ -88,5 +102,7 @@
             <section style="margin-top:18px" class="grid-2"><form class="form-card" wire:submit="storeSchedule"><h2>Tambah jadwal</h2><p>Agenda harian/mingguan untuk web dan Flutter.</p><div class="form-grid"><div class="field full"><label>Judul</label><input wire:model="scheduleTitle" required></div><div class="field"><label>Kategori</label><input wire:model="scheduleCategory" placeholder="Rutinitas, Agenda"></div><div class="field"><label>Repeat</label><select wire:model="scheduleRepeat"><option value="none">Tidak ulang</option><option value="daily">Harian</option><option value="weekly">Mingguan</option><option value="monthly">Bulanan</option></select></div><div class="field"><label>Mulai</label><input wire:model="scheduleStartAt" type="datetime-local" required></div><div class="field"><label>Selesai</label><input wire:model="scheduleEndAt" type="datetime-local" required></div><div class="field"><label>Warna</label><input wire:model="scheduleColor"></div><div class="field full"><label>Deskripsi</label><textarea wire:model="scheduleDescription" rows="3"></textarea></div><div class="field full"><button class="btn btn-primary" type="submit">Simpan jadwal</button></div></div></form><article class="panel"><h2>Tips repeat mingguan</h2><p>Untuk repeat mingguan, API mendukung repeat_days seperti mon,tue,wed. Form web saat ini memakai hari dari tanggal mulai sebagai default.</p><div class="empty">Data jadwal yang dibuat di web langsung tersedia untuk Flutter.</div></article></section>
             <section style="margin-top:18px" class="panel"><h2>Semua jadwal</h2><div class="list" style="margin-top:14px">@forelse($schedules as $schedule)<div class="item" wire:key="schedule-{{ $schedule->id }}"><div class="item-main"><strong>{{ $schedule->title }}</strong><span>{{ $schedule->category ?: 'Tanpa kategori' }} · {{ $schedule->start_at->format('d M Y H:i') }}</span></div><div class="actions"><span class="badge b-primary">{{ $schedule->repeat }}</span><button class="btn btn-danger" wire:click="destroySchedule({{ $schedule->id }})" wire:confirm="Hapus jadwal ini?">Hapus</button></div></div>@empty<div class="empty">Belum ada jadwal.</div>@endforelse</div></section>
         @endif
+        <div class="footer">Copyright © Designed & Developed by <span>AlfaApps</span> {{ now()->year }}</div>
+        </div>
     </main>
 </div>
