@@ -66,7 +66,7 @@ class ScheduleCalendar extends Component
         return view('livewire.schedule-calendar', [
             'calendarMonth' => $calendarMonth,
             'calendarDays' => $this->buildCalendarDays($schedules, $calendarMonth),
-            'selectedDate' => $selectedDate,
+            'selectedDay' => $selectedDate,
             'selectedSchedules' => $schedules
                 ->filter(fn (LifeSchedule $schedule) => $schedule->occursOn($selectedDate))
                 ->values(),

@@ -43,10 +43,10 @@
     <aside class="schedule-side">
         <article class="panel">
             <h2>Jadwal tanggal dipilih</h2>
-            <p>{{ $selectedDate->translatedFormat('l, d F Y') }}</p>
+            <p>{{ $selectedDay->translatedFormat('l, d F Y') }}</p>
             <div class="list">
                 @forelse ($selectedSchedules as $schedule)
-                    <div class="item" wire:key="selected-schedule-{{ $selectedDate->toDateString() }}-{{ $schedule->id }}">
+                    <div class="item" wire:key="selected-schedule-{{ $selectedDay->toDateString() }}-{{ $schedule->id }}">
                         <div class="item-main">
                             <strong>{{ $schedule->title }}</strong>
                             <span>{{ $schedule->start_at->format('H:i') }} - {{ $schedule->end_at->format('H:i') }} · {{ $schedule->category ?: 'Tanpa kategori' }}</span>
