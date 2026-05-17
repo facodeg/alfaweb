@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DataShareController;
 use App\Http\Controllers\Api\FinanceRecordController;
@@ -37,6 +38,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Dashboard
     Route::get('dashboard/summary', [DashboardController::class, 'summary']);
+
+    // AI assistance
+    Route::post('ai/form-draft', [AiController::class, 'formDraft']);
+    Route::post('ai/work-plan-draft', [AiController::class, 'workPlanDraft']);
 
     // Data sharing
     Route::get('data-shares', [DataShareController::class, 'index']);

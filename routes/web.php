@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/life-schedules', fn () => view('app', ['page' => 'life-schedules']))->name('web.life-schedules.index');
     Route::get('/vacations', fn () => view('app', ['page' => 'vacations']))->name('web.vacations.index');
     Route::get('/data-sharing', fn () => view('app', ['page' => 'data-sharing']))->name('web.data-sharing.index');
+    Route::get('/ai-settings', fn () => view('app', ['page' => 'ai-settings']))->name('web.ai-settings.index');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

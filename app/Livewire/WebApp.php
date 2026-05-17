@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\AiSetting;
 use App\Models\FinanceRecord;
 use App\Models\IncomeTarget;
 use App\Models\LifeSchedule;
@@ -11,10 +12,12 @@ use App\Models\Vacation;
 use App\Models\WorkPlan;
 use App\Models\WorkTarget;
 use App\Models\WorkTargetChangeRequest;
+use App\Services\OpenRouterService;
 use App\Support\SharedData;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use RuntimeException;
 
 class WebApp extends Component
 {
@@ -49,6 +52,13 @@ class WebApp extends Component
     public string $workPlanDescription = '';
     public string $workPlanPriority = 'medium';
     public string $workPlanDueAt = '';
+    public string $aiWorkPlanPrompt = '';
+    public string $aiFormPrompt = '';
+
+    public bool $aiEnabled = false;
+    public string $aiModel = 'openai/gpt-4o-mini';
+    public string $aiBaseUrl = 'https://openrouter.ai/api/v1';
+    public string $aiApiKey = '';
 
     public string $scheduleTitle = '';
     public string $scheduleDescription = '';
@@ -79,6 +89,7 @@ class WebApp extends Component
         $this->workTargetFilter = $workTargetFilter;
         $this->month = $month;
         $this->resetFormDates();
+        $this->loadAiSettings();
     }
 
     public function setFinanceFilter(?string $type): void
@@ -304,6 +315,60 @@ class WebApp extends Component
     {
         WorkPlan::where('user_id', auth()->id())->findOrFail($id)->delete();
         session()->flash('status', 'Rencana pekerjaan dihapus.');
+    }
+
+    public function generateWorkPlanWithAi(): void
+    {
+        $this->aiFormPrompt = $this->aiWorkPlanPrompt;
+        $this->generateCurrentFormWithAi();
+    }
+
+    public function generateCurrentFormWithAi(): void
+    {
+        $data = $this->validate([
+            'aiFormPrompt' => ['required', 'string', 'max:4000'],
+        ], [
+            'aiFormPrompt.required' => 'Prompt AI wajib diisi.',
+        ]);
+
+        try {
+            $draft = app(OpenRouterService::class)->generateFormDraft($this->page, $data['aiFormPrompt']);
+        } catch (RuntimeException $exception) {
+            $this->addError('aiFormPrompt', $exception->getMessage());
+            return;
+        }
+
+        $this->fillCurrentFormFromAiDraft($draft);
+
+        session()->flash('status', 'Draft form berhasil dibuat oleh AI. Cek lalu simpan jika sudah sesuai.');
+    }
+
+    public function saveAiSettings(): void
+    {
+        $data = $this->validate([
+            'aiEnabled' => ['boolean'],
+            'aiModel' => ['required', 'string', 'max:255'],
+            'aiBaseUrl' => ['required', 'url', 'max:255'],
+            'aiApiKey' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $settings = AiSetting::current();
+        $payload = [
+            'enabled' => $data['aiEnabled'],
+            'provider' => 'openrouter',
+            'base_url' => rtrim($data['aiBaseUrl'], '/'),
+            'model' => $data['aiModel'],
+        ];
+
+        if ($data['aiApiKey'] !== '') {
+            $payload['api_key'] = $data['aiApiKey'];
+        }
+
+        $settings->update($payload);
+        $this->aiApiKey = '';
+        $this->loadAiSettings();
+
+        session()->flash('status', 'Pengaturan AI tersimpan di database.');
     }
 
     public function storeSchedule(): void
@@ -608,6 +673,100 @@ class WebApp extends Component
         ];
     }
 
+    private function fillCurrentFormFromAiDraft(array $draft): void
+    {
+        match ($this->page) {
+            'finance' => $this->fillFinanceDraft($draft),
+            'income-targets' => $this->fillIncomeTargetDraft($draft),
+            'work-targets' => $this->fillWorkTargetDraft($draft),
+            'work-plans' => $this->fillWorkPlanDraft($draft),
+            'life-schedules' => $this->fillScheduleDraft($draft),
+            'vacations' => $this->fillVacationDraft($draft),
+            default => null,
+        };
+    }
+
+    private function fillFinanceDraft(array $draft): void
+    {
+        $this->financeType = in_array(($draft['type'] ?? 'expense'), ['income', 'expense'], true) ? $draft['type'] : 'expense';
+        $this->financeAmount = isset($draft['amount']) ? (string) $draft['amount'] : $this->financeAmount;
+        $this->financeCategory = (string) ($draft['category'] ?? $this->financeCategory);
+        $this->financeNote = (string) ($draft['note'] ?? $this->financeNote);
+        $this->financeOccurredAt = $this->dateTimeInput($draft['occurred_at'] ?? null) ?: $this->financeOccurredAt;
+    }
+
+    private function fillIncomeTargetDraft(array $draft): void
+    {
+        $this->incomeTitle = (string) ($draft['title'] ?? $this->incomeTitle);
+        $this->incomePeriod = in_array(($draft['period'] ?? 'monthly'), ['weekly', 'monthly', 'yearly'], true) ? $draft['period'] : 'monthly';
+        $this->incomeTargetAmount = isset($draft['target_amount']) ? (string) $draft['target_amount'] : $this->incomeTargetAmount;
+        $this->incomePeriodStart = $this->dateInput($draft['period_start'] ?? null) ?: $this->incomePeriodStart;
+        $this->incomePeriodEnd = $this->dateInput($draft['period_end'] ?? null) ?: $this->incomePeriodEnd;
+        $this->incomeNote = (string) ($draft['note'] ?? $this->incomeNote);
+    }
+
+    private function fillWorkTargetDraft(array $draft): void
+    {
+        $this->workTargetTitle = (string) ($draft['title'] ?? $this->workTargetTitle);
+        $this->workTargetDescription = (string) ($draft['description'] ?? $this->workTargetDescription);
+        $this->workTargetDeadline = $this->dateInput($draft['deadline'] ?? null) ?: $this->workTargetDeadline;
+        $this->workTargetStatus = in_array(($draft['status'] ?? 'on_progress'), ['pending', 'on_progress', 'done'], true) ? $draft['status'] : 'on_progress';
+        $this->workTargetProgress = max(0, min(100, (int) ($draft['progress'] ?? $this->workTargetProgress)));
+    }
+
+    private function fillWorkPlanDraft(array $draft): void
+    {
+        $this->workPlanTitle = (string) ($draft['title'] ?? $this->workPlanTitle);
+        $this->workPlanDescription = (string) ($draft['description'] ?? $this->workPlanDescription);
+        $this->workPlanPriority = in_array(($draft['priority'] ?? 'medium'), ['low', 'medium', 'high'], true) ? $draft['priority'] : 'medium';
+        $this->workPlanDueAt = $this->dateTimeInput($draft['due_at'] ?? null) ?: $this->workPlanDueAt;
+    }
+
+    private function fillScheduleDraft(array $draft): void
+    {
+        $this->scheduleTitle = (string) ($draft['title'] ?? $this->scheduleTitle);
+        $this->scheduleDescription = (string) ($draft['description'] ?? $this->scheduleDescription);
+        $this->scheduleCategory = (string) ($draft['category'] ?? $this->scheduleCategory);
+        $this->scheduleStartAt = $this->dateTimeInput($draft['start_at'] ?? null) ?: $this->scheduleStartAt;
+        $this->scheduleEndAt = $this->dateTimeInput($draft['end_at'] ?? null) ?: $this->scheduleEndAt;
+        $this->scheduleRepeat = in_array(($draft['repeat'] ?? 'none'), ['none', 'daily', 'weekly', 'monthly'], true) ? $draft['repeat'] : 'none';
+        $this->scheduleColor = (string) ($draft['color'] ?? $this->scheduleColor);
+    }
+
+    private function fillVacationDraft(array $draft): void
+    {
+        $this->vacationTitle = (string) ($draft['title'] ?? $this->vacationTitle);
+        $this->vacationDestination = (string) ($draft['destination'] ?? $this->vacationDestination);
+        $this->vacationDescription = (string) ($draft['description'] ?? $this->vacationDescription);
+        $this->vacationStartDate = $this->dateInput($draft['start_date'] ?? null) ?: $this->vacationStartDate;
+        $this->vacationEndDate = $this->dateInput($draft['end_date'] ?? null) ?: $this->vacationEndDate;
+        $this->vacationBudget = isset($draft['budget']) ? (string) $draft['budget'] : $this->vacationBudget;
+        $this->vacationStatus = in_array(($draft['status'] ?? 'planned'), ['planned', 'booked', 'ongoing', 'completed', 'cancelled'], true) ? $draft['status'] : 'planned';
+        $this->vacationAddress = (string) ($draft['address'] ?? $this->vacationAddress);
+        $this->vacationLatitude = isset($draft['latitude']) ? (string) $draft['latitude'] : $this->vacationLatitude;
+        $this->vacationLongitude = isset($draft['longitude']) ? (string) $draft['longitude'] : $this->vacationLongitude;
+        $this->vacationMapUrl = (string) ($draft['map_url'] ?? $this->vacationMapUrl);
+        $this->vacationNotes = (string) ($draft['notes'] ?? $this->vacationNotes);
+    }
+
+    private function dateInput(mixed $value): ?string
+    {
+        if (! $value || strtotime((string) $value) === false) {
+            return null;
+        }
+
+        return date('Y-m-d', strtotime((string) $value));
+    }
+
+    private function dateTimeInput(mixed $value): ?string
+    {
+        if (! $value || strtotime((string) $value) === false) {
+            return null;
+        }
+
+        return date('Y-m-d\TH:i', strtotime((string) $value));
+    }
+
     private function resetWorkTargetForm(): void
     {
         $this->editingWorkTargetId = null;
@@ -670,5 +829,15 @@ class WebApp extends Component
             ->orWhere('shared_with_id', auth()->id())
             ->latest()
             ->get();
+    }
+
+    private function loadAiSettings(): void
+    {
+        $settings = AiSetting::current();
+
+        $this->aiEnabled = $settings->enabled;
+        $this->aiModel = $settings->model;
+        $this->aiBaseUrl = $settings->base_url;
+        $this->aiApiKey = '';
     }
 }

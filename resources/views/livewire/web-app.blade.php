@@ -10,7 +10,9 @@
         ['key' => 'life-schedules', 'label' => 'Jadwal', 'icon' => 'fa-calendar-days', 'route' => route('web.life-schedules.index')],
         ['key' => 'vacations', 'label' => 'Liburan', 'icon' => 'fa-map-location-dot', 'route' => route('web.vacations.index')],
         ['key' => 'data-sharing', 'label' => 'Berbagi Data', 'icon' => 'fa-user-group', 'route' => route('web.data-sharing.index')],
+        ['key' => 'ai-settings', 'label' => 'Pengaturan AI', 'icon' => 'fa-robot', 'route' => route('web.ai-settings.index')],
     ];
+    $aiInputPages = ['finance', 'income-targets', 'work-targets', 'work-plans', 'life-schedules', 'vacations'];
 @endphp
 
 <div class="app">
@@ -63,6 +65,23 @@
             <article class="card stat"><div class="stat-head"><span>Jadwal hari ini</span><i class="icon i-coral fa-solid fa-calendar-day"></i></div><div class="stat-value">{{ $summary['today_schedule_count'] }}</div></article>
             <article class="card stat"><div class="stat-head"><span>Rencana liburan</span><i class="icon i-primary fa-solid fa-map-location-dot"></i></div><div class="stat-value">{{ $summary['upcoming_vacations'] }}</div></article>
         </section>
+
+        @if (in_array($page, $aiInputPages, true))
+            <section style="margin-top:18px" class="panel">
+                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Bantuan AI untuk input form</h2>
+                <p>Tulis instruksi, lalu AI akan mengisi field form di halaman {{ collect($nav)->firstWhere('key', $page)['label'] ?? 'ini' }}. Data belum disimpan sampai tombol simpan form ditekan.</p>
+                <div class="form-grid" style="margin-top:14px">
+                    <div class="field full">
+                        <label>Prompt AI</label>
+                        <textarea wire:model="aiFormPrompt" rows="3" placeholder="Contoh: Catat pengeluaran makan siang 45000 hari ini, kategori Makan."></textarea>
+                    </div>
+                    <div class="field full">
+                        <button class="btn btn-primary" type="button" wire:click="generateCurrentFormWithAi"><i class="fa-solid fa-robot"></i>Isi form dengan AI</button>
+                    </div>
+                </div>
+                <div class="empty">API key dan model OpenRouter diatur di menu Pengaturan AI dan disimpan di database.</div>
+            </section>
+        @endif
 
         @if ($page === 'dashboard')
             <section class="grid-2">
@@ -138,8 +157,70 @@
         @endif
 
         @if ($page === 'work-plans')
-            <section class="grid-2"><form class="form-card" wire:submit="storeWorkPlan"><h2>Rencana pekerjaan</h2><p>Checklist task pekerjaan seperti di Flutter.</p><div class="form-grid"><div class="field full"><label>Judul</label><input wire:model="workPlanTitle" required></div><div class="field"><label>Target terkait</label><select wire:model="workPlanTargetId"><option value="">Tanpa target</option>@foreach($allWorkTargets as $target)<option value="{{ $target->id }}">{{ $target->title }}</option>@endforeach</select></div><div class="field"><label>Prioritas</label><select wire:model="workPlanPriority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div><div class="field"><label>Deadline</label><input wire:model="workPlanDueAt" type="datetime-local"></div><div class="field full"><label>Deskripsi</label><textarea wire:model="workPlanDescription" rows="3"></textarea></div><div class="field full"><button class="btn btn-primary" type="submit">Simpan rencana</button></div></div></form><article class="panel"><h2>Hari ini</h2><p>{{ $summary['plans_today'] }} rencana hari ini, {{ $summary['plans_overdue'] }} terlambat.</p></article></section>
-            <section style="margin-top:18px" class="panel"><div class="list">@forelse($workPlans as $plan)<div class="item" wire:key="work-plan-{{ $plan->id }}"><div class="item-main"><strong>{{ $plan->title }}</strong><span>{{ $plan->workTarget?->title ?? 'Tanpa target' }} · {{ $plan->due_at?->format('d M Y H:i') ?? 'Tanpa deadline' }}</span></div><div class="actions"><span class="badge {{ $plan->is_done ? 'b-mint' : ($plan->priority === 'high' ? 'b-coral' : 'b-primary') }}">{{ $plan->is_done ? 'Selesai' : $plan->priority }}</span><button class="btn btn-soft" wire:click="toggleWorkPlan({{ $plan->id }})">Toggle</button><button class="btn btn-danger" wire:click="destroyWorkPlan({{ $plan->id }})" wire:confirm="Hapus rencana ini?">Hapus</button></div></div>@empty<div class="empty">Belum ada rencana pekerjaan.</div>@endforelse</div></section>
+            <section class="grid-2">
+                <form class="form-card" wire:submit="storeWorkPlan">
+                    <h2>Rencana pekerjaan</h2>
+                    <p>Checklist task pekerjaan seperti di Flutter.</p>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label>Judul</label>
+                            <input wire:model="workPlanTitle" required>
+                        </div>
+                        <div class="field">
+                            <label>Target terkait</label>
+                            <select wire:model="workPlanTargetId">
+                                <option value="">Tanpa target</option>
+                                @foreach($allWorkTargets as $target)
+                                    <option value="{{ $target->id }}">{{ $target->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Prioritas</label>
+                            <select wire:model="workPlanPriority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Deadline</label>
+                            <input wire:model="workPlanDueAt" type="datetime-local">
+                        </div>
+                        <div class="field full">
+                            <label>Deskripsi</label>
+                            <textarea wire:model="workPlanDescription" rows="3"></textarea>
+                        </div>
+                        <div class="field full">
+                            <button class="btn btn-primary" type="submit">Simpan rencana</button>
+                        </div>
+                    </div>
+                </form>
+                <article class="panel">
+                    <h2>Hari ini</h2>
+                    <p>{{ $summary['plans_today'] }} rencana hari ini, {{ $summary['plans_overdue'] }} terlambat.</p>
+                    <div class="empty">Gunakan panel Bantuan AI di atas untuk mengisi draft rencana kerja otomatis.</div>
+                </article>
+            </section>
+            <section style="margin-top:18px" class="panel">
+                <div class="list">
+                    @forelse($workPlans as $plan)
+                        <div class="item" wire:key="work-plan-{{ $plan->id }}">
+                            <div class="item-main">
+                                <strong>{{ $plan->title }}</strong>
+                                <span>{{ $plan->workTarget?->title ?? 'Tanpa target' }} · {{ $plan->due_at?->format('d M Y H:i') ?? 'Tanpa deadline' }}</span>
+                            </div>
+                            <div class="actions">
+                                <span class="badge {{ $plan->is_done ? 'b-mint' : ($plan->priority === 'high' ? 'b-coral' : 'b-primary') }}">{{ $plan->is_done ? 'Selesai' : $plan->priority }}</span>
+                                <button class="btn btn-soft" wire:click="toggleWorkPlan({{ $plan->id }})">Toggle</button>
+                                <button class="btn btn-danger" wire:click="destroyWorkPlan({{ $plan->id }})" wire:confirm="Hapus rencana ini?">Hapus</button>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="empty">Belum ada rencana pekerjaan.</div>
+                    @endforelse
+                </div>
+            </section>
         @endif
 
         @if ($page === 'life-schedules')
@@ -243,6 +324,52 @@
                         <div class="empty">Belum ada akun yang dibagikan.</div>
                     @endforelse
                 </div>
+            </section>
+        @endif
+
+        @if ($page === 'ai-settings')
+            <section class="grid-2">
+                <form class="form-card" wire:submit="saveAiSettings">
+                    <h2>Pengaturan OpenRouter</h2>
+                    <p>Konfigurasi AI disimpan di database. API key tidak memakai `.env` dan tidak ditampilkan kembali setelah disimpan.</p>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label>Status AI</label>
+                            <select wire:model="aiEnabled">
+                                <option value="0">Nonaktif</option>
+                                <option value="1">Aktif</option>
+                            </select>
+                        </div>
+                        <div class="field full">
+                            <label>OpenRouter API Key</label>
+                            <input wire:model="aiApiKey" type="password" placeholder="Isi untuk menyimpan/mengganti key. Kosongkan untuk tetap pakai key lama.">
+                        </div>
+                        <div class="field full">
+                            <label>Model</label>
+                            <input wire:model="aiModel" list="openrouter-models" placeholder="openai/gpt-4o-mini">
+                            <datalist id="openrouter-models">
+                                <option value="openai/gpt-4o-mini"></option>
+                                <option value="openai/gpt-4.1-mini"></option>
+                                <option value="anthropic/claude-3.5-sonnet"></option>
+                                <option value="google/gemini-2.0-flash-001"></option>
+                                <option value="meta-llama/llama-3.1-8b-instruct"></option>
+                                <option value="deepseek/deepseek-chat"></option>
+                            </datalist>
+                        </div>
+                        <div class="field full">
+                            <label>Base URL</label>
+                            <input wire:model="aiBaseUrl" placeholder="https://openrouter.ai/api/v1">
+                        </div>
+                        <div class="field full">
+                            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i>Simpan pengaturan AI</button>
+                        </div>
+                    </div>
+                </form>
+                <article class="panel">
+                    <h2>Cara pakai</h2>
+                    <p>Setelah AI aktif dan API key tersimpan, buka menu Rencana Kerja. Isi prompt di kartu Bantuan AI, lalu klik Buat draft dengan AI.</p>
+                    <div class="empty">Endpoint Flutter juga tersedia: <code>POST /api/ai/work-plan-draft</code> dengan body <code>{"prompt":"..."}</code>.</div>
+                </article>
             </section>
         @endif
         <div class="footer">Copyright © Designed & Developed by <span>AlfaApps</span> {{ now()->year }}</div>
