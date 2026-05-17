@@ -31,6 +31,7 @@ class WebApp extends Component
     public string $financeCategory = '';
     public string $financeNote = '';
     public string $financeOccurredAt = '';
+    public ?int $editingFinanceId = null;
 
     public string $incomeTitle = '';
     public string $incomePeriod = 'monthly';
@@ -38,6 +39,7 @@ class WebApp extends Component
     public string $incomePeriodStart = '';
     public string $incomePeriodEnd = '';
     public string $incomeNote = '';
+    public ?int $editingIncomeTargetId = null;
 
     public string $workTargetTitle = '';
     public string $workTargetDescription = '';
@@ -52,6 +54,7 @@ class WebApp extends Component
     public string $workPlanDescription = '';
     public string $workPlanPriority = 'medium';
     public string $workPlanDueAt = '';
+    public ?int $editingWorkPlanId = null;
     public string $aiWorkPlanPrompt = '';
     public string $aiFormPrompt = '';
 
@@ -68,6 +71,7 @@ class WebApp extends Component
     public string $scheduleEndAt = '';
     public string $scheduleRepeat = 'none';
     public string $scheduleColor = '#5B5FEF';
+    public ?int $editingScheduleId = null;
     public string $shareEmail = '';
 
     public string $vacationTitle = '';
@@ -82,6 +86,7 @@ class WebApp extends Component
     public string $vacationLongitude = '';
     public string $vacationMapUrl = '';
     public string $vacationNotes = '';
+    public ?int $editingVacationId = null;
 
     public function mount(string $page = 'dashboard', ?string $financeFilter = null, ?string $workTargetFilter = null, ?string $month = null): void
     {
@@ -113,25 +118,52 @@ class WebApp extends Component
             'financeOccurredAt' => ['required', 'date'],
         ]);
 
-        FinanceRecord::create([
+        $payload = [
             'user_id' => auth()->id(),
             'type' => $data['financeType'],
             'amount' => $data['financeAmount'],
             'category' => $data['financeCategory'],
             'note' => $data['financeNote'],
             'occurred_at' => $data['financeOccurredAt'],
-        ]);
+        ];
 
-        $this->financeAmount = '';
-        $this->financeCategory = '';
-        $this->financeNote = '';
+        if ($this->editingFinanceId) {
+            FinanceRecord::where('user_id', auth()->id())->findOrFail($this->editingFinanceId)->update($payload);
+            $this->resetFinanceForm();
+            session()->flash('status', 'Catatan keuangan diperbarui.');
+            return;
+        }
+
+        FinanceRecord::create($payload);
+
+        $this->resetFinanceForm();
         session()->flash('status', 'Catatan keuangan tersimpan.');
+    }
+
+    public function editFinance(int $id): void
+    {
+        $record = FinanceRecord::where('user_id', auth()->id())->findOrFail($id);
+
+        $this->editingFinanceId = $record->id;
+        $this->financeType = $record->type;
+        $this->financeAmount = (string) $record->amount;
+        $this->financeCategory = $record->category ?? '';
+        $this->financeNote = $record->note ?? '';
+        $this->financeOccurredAt = $record->occurred_at->format('Y-m-d\TH:i');
+    }
+
+    public function cancelFinanceEdit(): void
+    {
+        $this->resetFinanceForm();
     }
 
     public function destroyFinance(int $id): void
     {
         $record = FinanceRecord::where('user_id', auth()->id())->findOrFail($id);
         $record->delete();
+        if ($this->editingFinanceId === $id) {
+            $this->resetFinanceForm();
+        }
         session()->flash('status', 'Catatan keuangan dihapus.');
     }
 
@@ -146,7 +178,7 @@ class WebApp extends Component
             'incomeNote' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        IncomeTarget::create([
+        $payload = [
             'user_id' => auth()->id(),
             'title' => $data['incomeTitle'],
             'period' => $data['incomePeriod'],
@@ -154,17 +186,45 @@ class WebApp extends Component
             'period_end' => $data['incomePeriodEnd'],
             'target_amount' => $data['incomeTargetAmount'],
             'note' => $data['incomeNote'],
-        ]);
+        ];
 
-        $this->incomeTitle = '';
-        $this->incomeTargetAmount = '';
-        $this->incomeNote = '';
+        if ($this->editingIncomeTargetId) {
+            IncomeTarget::where('user_id', auth()->id())->findOrFail($this->editingIncomeTargetId)->update($payload);
+            $this->resetIncomeTargetForm();
+            session()->flash('status', 'Target pendapatan diperbarui.');
+            return;
+        }
+
+        IncomeTarget::create($payload);
+
+        $this->resetIncomeTargetForm();
         session()->flash('status', 'Target pendapatan tersimpan.');
+    }
+
+    public function editIncomeTarget(int $id): void
+    {
+        $target = IncomeTarget::where('user_id', auth()->id())->findOrFail($id);
+
+        $this->editingIncomeTargetId = $target->id;
+        $this->incomeTitle = $target->title;
+        $this->incomePeriod = $target->period;
+        $this->incomeTargetAmount = (string) $target->target_amount;
+        $this->incomePeriodStart = $target->period_start->toDateString();
+        $this->incomePeriodEnd = $target->period_end->toDateString();
+        $this->incomeNote = $target->note ?? '';
+    }
+
+    public function cancelIncomeTargetEdit(): void
+    {
+        $this->resetIncomeTargetForm();
     }
 
     public function destroyIncomeTarget(int $id): void
     {
         IncomeTarget::where('user_id', auth()->id())->findOrFail($id)->delete();
+        if ($this->editingIncomeTargetId === $id) {
+            $this->resetIncomeTargetForm();
+        }
         session()->flash('status', 'Target pendapatan dihapus.');
     }
 
@@ -288,7 +348,7 @@ class WebApp extends Component
             WorkTarget::where('user_id', auth()->id())->findOrFail($data['workPlanTargetId']);
         }
 
-        WorkPlan::create([
+        $payload = [
             'user_id' => auth()->id(),
             'work_target_id' => $data['workPlanTargetId'],
             'title' => $data['workPlanTitle'],
@@ -296,13 +356,37 @@ class WebApp extends Component
             'priority' => $data['workPlanPriority'],
             'due_at' => $data['workPlanDueAt'] ?: null,
             'is_done' => false,
-        ]);
+        ];
 
-        $this->workPlanTargetId = null;
-        $this->workPlanTitle = '';
-        $this->workPlanDescription = '';
-        $this->workPlanDueAt = '';
+        if ($this->editingWorkPlanId) {
+            unset($payload['is_done']);
+            WorkPlan::where('user_id', auth()->id())->findOrFail($this->editingWorkPlanId)->update($payload);
+            $this->resetWorkPlanForm();
+            session()->flash('status', 'Rencana pekerjaan diperbarui.');
+            return;
+        }
+
+        WorkPlan::create($payload);
+
+        $this->resetWorkPlanForm();
         session()->flash('status', 'Rencana pekerjaan tersimpan.');
+    }
+
+    public function editWorkPlan(int $id): void
+    {
+        $plan = WorkPlan::where('user_id', auth()->id())->findOrFail($id);
+
+        $this->editingWorkPlanId = $plan->id;
+        $this->workPlanTargetId = $plan->work_target_id;
+        $this->workPlanTitle = $plan->title;
+        $this->workPlanDescription = $plan->description ?? '';
+        $this->workPlanPriority = $plan->priority ?? 'medium';
+        $this->workPlanDueAt = $plan->due_at?->format('Y-m-d\TH:i') ?? '';
+    }
+
+    public function cancelWorkPlanEdit(): void
+    {
+        $this->resetWorkPlanForm();
     }
 
     public function toggleWorkPlan(int $id): void
@@ -315,6 +399,9 @@ class WebApp extends Component
     public function destroyWorkPlan(int $id): void
     {
         WorkPlan::where('user_id', auth()->id())->findOrFail($id)->delete();
+        if ($this->editingWorkPlanId === $id) {
+            $this->resetWorkPlanForm();
+        }
         session()->flash('status', 'Rencana pekerjaan dihapus.');
     }
 
@@ -378,7 +465,7 @@ class WebApp extends Component
             'scheduleColor' => ['nullable', 'string', 'max:16'],
         ]);
 
-        LifeSchedule::create([
+        $payload = [
             'user_id' => auth()->id(),
             'title' => $data['scheduleTitle'],
             'description' => $data['scheduleDescription'],
@@ -387,18 +474,48 @@ class WebApp extends Component
             'end_at' => $data['scheduleEndAt'],
             'repeat' => $data['scheduleRepeat'],
             'color' => $data['scheduleColor'],
-        ]);
+        ];
 
-        $this->scheduleTitle = '';
-        $this->scheduleDescription = '';
-        $this->scheduleCategory = '';
+        if ($this->editingScheduleId) {
+            LifeSchedule::where('user_id', auth()->id())->findOrFail($this->editingScheduleId)->update($payload);
+            $this->resetScheduleForm();
+            $this->dispatch('schedule-updated');
+            session()->flash('status', 'Jadwal diperbarui.');
+            return;
+        }
+
+        LifeSchedule::create($payload);
+
+        $this->resetScheduleForm();
         $this->dispatch('schedule-updated');
         session()->flash('status', 'Jadwal tersimpan.');
+    }
+
+    public function editSchedule(int $id): void
+    {
+        $schedule = LifeSchedule::where('user_id', auth()->id())->findOrFail($id);
+
+        $this->editingScheduleId = $schedule->id;
+        $this->scheduleTitle = $schedule->title;
+        $this->scheduleDescription = $schedule->description ?? '';
+        $this->scheduleCategory = $schedule->category ?? '';
+        $this->scheduleStartAt = $schedule->start_at->format('Y-m-d\TH:i');
+        $this->scheduleEndAt = $schedule->end_at->format('Y-m-d\TH:i');
+        $this->scheduleRepeat = $schedule->repeat ?? 'none';
+        $this->scheduleColor = $schedule->color ?? '#5B5FEF';
+    }
+
+    public function cancelScheduleEdit(): void
+    {
+        $this->resetScheduleForm();
     }
 
     public function destroySchedule(int $id): void
     {
         LifeSchedule::where('user_id', auth()->id())->findOrFail($id)->delete();
+        if ($this->editingScheduleId === $id) {
+            $this->resetScheduleForm();
+        }
         $this->dispatch('schedule-updated');
         session()->flash('status', 'Jadwal dihapus.');
     }
@@ -420,7 +537,7 @@ class WebApp extends Component
             'vacationNotes' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        Vacation::create([
+        $payload = [
             'user_id' => auth()->id(),
             'title' => $data['vacationTitle'],
             'destination' => $data['vacationDestination'],
@@ -434,23 +551,51 @@ class WebApp extends Component
             'longitude' => $data['vacationLongitude'] !== '' ? $data['vacationLongitude'] : null,
             'map_url' => $data['vacationMapUrl'],
             'notes' => $data['vacationNotes'],
-        ]);
+        ];
 
-        $this->vacationTitle = '';
-        $this->vacationDestination = '';
-        $this->vacationDescription = '';
-        $this->vacationBudget = '';
-        $this->vacationAddress = '';
-        $this->vacationLatitude = '';
-        $this->vacationLongitude = '';
-        $this->vacationMapUrl = '';
-        $this->vacationNotes = '';
+        if ($this->editingVacationId) {
+            Vacation::where('user_id', auth()->id())->findOrFail($this->editingVacationId)->update($payload);
+            $this->resetVacationForm();
+            session()->flash('status', 'Rencana liburan diperbarui.');
+            return;
+        }
+
+        Vacation::create($payload);
+
+        $this->resetVacationForm();
         session()->flash('status', 'Rencana liburan tersimpan.');
+    }
+
+    public function editVacation(int $id): void
+    {
+        $vacation = Vacation::where('user_id', auth()->id())->findOrFail($id);
+
+        $this->editingVacationId = $vacation->id;
+        $this->vacationTitle = $vacation->title;
+        $this->vacationDestination = $vacation->destination;
+        $this->vacationDescription = $vacation->description ?? '';
+        $this->vacationStartDate = $vacation->start_date?->toDateString() ?? '';
+        $this->vacationEndDate = $vacation->end_date?->toDateString() ?? '';
+        $this->vacationBudget = $vacation->budget !== null ? (string) $vacation->budget : '';
+        $this->vacationStatus = $vacation->status ?? 'planned';
+        $this->vacationAddress = $vacation->address ?? '';
+        $this->vacationLatitude = $vacation->latitude !== null ? (string) $vacation->latitude : '';
+        $this->vacationLongitude = $vacation->longitude !== null ? (string) $vacation->longitude : '';
+        $this->vacationMapUrl = $vacation->map_url ?? '';
+        $this->vacationNotes = $vacation->notes ?? '';
+    }
+
+    public function cancelVacationEdit(): void
+    {
+        $this->resetVacationForm();
     }
 
     public function destroyVacation(int $id): void
     {
         Vacation::where('user_id', auth()->id())->findOrFail($id)->delete();
+        if ($this->editingVacationId === $id) {
+            $this->resetVacationForm();
+        }
         session()->flash('status', 'Rencana liburan dihapus.');
     }
 
@@ -771,6 +916,66 @@ class WebApp extends Component
         $this->workTargetDeadline = '';
         $this->workTargetStatus = 'on_progress';
         $this->workTargetProgress = 0;
+    }
+
+    private function resetFinanceForm(): void
+    {
+        $this->editingFinanceId = null;
+        $this->financeType = 'income';
+        $this->financeAmount = '';
+        $this->financeCategory = '';
+        $this->financeNote = '';
+        $this->financeOccurredAt = now()->format('Y-m-d\TH:i');
+    }
+
+    private function resetIncomeTargetForm(): void
+    {
+        $this->editingIncomeTargetId = null;
+        $this->incomeTitle = '';
+        $this->incomePeriod = 'monthly';
+        $this->incomeTargetAmount = '';
+        $this->incomePeriodStart = now()->startOfMonth()->toDateString();
+        $this->incomePeriodEnd = now()->endOfMonth()->toDateString();
+        $this->incomeNote = '';
+    }
+
+    private function resetWorkPlanForm(): void
+    {
+        $this->editingWorkPlanId = null;
+        $this->workPlanTargetId = null;
+        $this->workPlanTitle = '';
+        $this->workPlanDescription = '';
+        $this->workPlanPriority = 'medium';
+        $this->workPlanDueAt = '';
+    }
+
+    private function resetScheduleForm(): void
+    {
+        $this->editingScheduleId = null;
+        $this->scheduleTitle = '';
+        $this->scheduleDescription = '';
+        $this->scheduleCategory = '';
+        $this->scheduleStartAt = now()->format('Y-m-d\TH:i');
+        $this->scheduleEndAt = now()->addHour()->format('Y-m-d\TH:i');
+        $this->scheduleRepeat = 'none';
+        $this->scheduleColor = '#5B5FEF';
+    }
+
+    private function resetVacationForm(): void
+    {
+        $this->editingVacationId = null;
+        $this->vacationTitle = '';
+        $this->vacationDestination = '';
+        $this->vacationDescription = '';
+        $this->vacationStartDate = now()->toDateString();
+        $this->vacationEndDate = now()->addDay()->toDateString();
+        $this->vacationBudget = '';
+        $this->vacationStatus = 'planned';
+        $this->vacationAddress = '';
+        $this->vacationLatitude = '';
+        $this->vacationLongitude = '';
+        $this->vacationMapUrl = '';
+        $this->vacationNotes = '';
     }
 
     private function vacations(): Collection
