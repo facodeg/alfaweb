@@ -13,7 +13,7 @@
         :root{--primary:#0A7C6E;--primary-dark:#075f54;--primary-soft:#e4f5f1;--accent:#F59E0B;--accent-soft:#fff3d7;--coral:#FF6B35;--coral-soft:#fff0e9;--bg:#FAFAFA;--surface:#fff;--surface-alt:#f6faf8;--text:#111827;--muted:#737b91;--border:#e7eee9;--danger:#ef4444;--success:#0A7C6E;--warning:#F59E0B;--shadow:0 22px 55px rgba(10,124,110,.09)}body{background:linear-gradient(135deg,#FAFAFA 0%,#f2faf7 48%,#fff7eb 100%)}.sidebar{background:linear-gradient(180deg,#fff 0%,#fbfffd 100%);border-right:1px solid #dceae5}.brand-mark{background:linear-gradient(135deg,#0A7C6E,#0d9b89);box-shadow:0 0 0 8px #e4f5f1,0 18px 40px rgba(10,124,110,.22)}.brand-title{color:#0b2f2a}.brand-sub{color:#6b7d78}.sidebar-profile{background:linear-gradient(135deg,#e4f5f1,#fff7eb);border:1px solid #d5eee7}.sidebar-avatar{background:#0A7C6E;color:#fff}.nav a{border-radius:16px}.nav a:hover,.nav a.active{background:linear-gradient(135deg,#e4f5f1,#fff7eb);color:#0A7C6E;box-shadow:inset -5px 0 0 #FF6B35}.topbar{background:rgba(255,255,255,.9);backdrop-filter:blur(16px);border-bottom:1px solid #dceae5}.title{color:#0b2f2a}.search-box{background:#f1f6f4;border:1px solid #dceae5}.icon-button.add{background:#dff2ee;color:#0A7C6E}.icon-button{background:#fff;border:1px solid #e7eee9}.notif,.login-pill{background:#FF6B35}.content{background:radial-gradient(circle at top left,rgba(10,124,110,.09),transparent 22rem),radial-gradient(circle at top right,rgba(245,158,11,.14),transparent 24rem);}.card,.panel,.form-card,.category{border-color:#e7eee9;border-radius:22px;box-shadow:0 22px 55px rgba(10,124,110,.09)}.stat{position:relative;overflow:hidden}.stat:before{content:"";position:absolute;right:-26px;top:-30px;width:110px;height:110px;border-radius:999px;background:rgba(10,124,110,.08)}.stat:nth-child(2):before{background:rgba(245,158,11,.16)}.stat:nth-child(3):before{background:rgba(255,107,53,.13)}.stat:nth-child(4):before{background:rgba(10,124,110,.12)}.stat-value{color:#0b2f2a}.i-primary{background:#e4f5f1;color:#0A7C6E}.i-mint{background:#e4f5f1;color:#0A7C6E}.i-coral{background:#fff0e9;color:#FF6B35}.i-orange{background:#fff3d7;color:#F59E0B}.hero-card{background:linear-gradient(145deg,#0A7C6E,#0d9b89);color:#fff}.hero-card small,.hero-card p{color:rgba(255,255,255,.78)}.hero-card:after{background:linear-gradient(180deg,rgba(245,158,11,.38),rgba(255,107,53,.18))}.mini{background:rgba(255,255,255,.14);color:#fff}.category:hover{color:#0A7C6E;border-color:#0A7C6E}.category .icon{background:#fff0e9;color:#FF6B35}.btn-primary{background:linear-gradient(135deg,#0A7C6E,#075f54)}.btn-soft{background:#e4f5f1;color:#0A7C6E}.btn-danger{background:#fff0e9;color:#FF6B35}.b-primary{background:#e4f5f1;color:#0A7C6E}.b-orange{background:#fff3d7;color:#F59E0B}.b-coral{background:#fff0e9;color:#FF6B35}.progress span{background:linear-gradient(135deg,#0A7C6E,#F59E0B)}.calendar-day.is-today,.calendar-day.is-selected{border-color:#FF6B35;box-shadow:0 0 0 4px rgba(255,107,53,.12)}.calendar-day.is-selected{background:#fff0e9}.calendar-day.is-today .calendar-date span:first-child,.calendar-day.is-selected .calendar-date span:first-child{background:#FF6B35}.calendar-event{border-left-color:#0A7C6E;background:#fff}.calendar-nav button{background:#e4f5f1;color:#0A7C6E}.footer span{color:#0A7C6E}
         body{background:linear-gradient(135deg,#f9faf7 0%,#eef8f4 42%,#fff8ec 100%)}.app{grid-template-columns:300px 1fr}.sidebar{background:linear-gradient(180deg,#083f38 0%,#0A7C6E 72%,#08695e 100%);border-right:0;color:#fff;padding:24px 22px;box-shadow:18px 0 55px rgba(10,124,110,.12)}.brand{margin-bottom:26px}.brand-mark{background:#fff;color:#0A7C6E;box-shadow:0 14px 38px rgba(0,0,0,.16)}.brand-title{color:#fff}.brand-sub{color:rgba(255,255,255,.7)}.sidebar-profile{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(16px);border-radius:24px}.sidebar-profile span,.sidebar-profile strong{color:#fff}.sidebar-profile span span{color:rgba(255,255,255,.72)}.sidebar-avatar{background:#F59E0B;color:#fff;border-radius:18px}.nav{gap:10px}.nav a,.logout{border-radius:18px;color:rgba(255,255,255,.72);font-weight:800}.nav a:hover,.nav a.active{background:rgba(255,255,255,.96);color:#0A7C6E;box-shadow:0 16px 35px rgba(0,0,0,.16)}.nav a.active i{color:#FF6B35}.logout{color:#fff;background:rgba(255,107,53,.18)}.logout:hover{background:#FF6B35;color:#fff}.main{background:transparent}.topbar{height:86px;margin:18px 24px 0;border-radius:28px;border:1px solid rgba(10,124,110,.12);box-shadow:0 18px 45px rgba(10,124,110,.08)}.content{padding:30px 32px;background:radial-gradient(circle at 8% 0%,rgba(10,124,110,.12),transparent 26rem),radial-gradient(circle at 92% 10%,rgba(245,158,11,.16),transparent 28rem)}.title{font-size:28px;color:#083f38}.hamburger{color:#0A7C6E}.search-box{height:56px;border-radius:18px;background:#fff;border:1px solid rgba(10,124,110,.14);box-shadow:0 10px 26px rgba(10,124,110,.06)}.icon-button{border-radius:18px;box-shadow:0 10px 25px rgba(10,124,110,.07)}.icon-button.add{background:#0A7C6E;color:#fff}.login-pill{border-radius:18px;background:#FF6B35}.stats{gap:20px}.stat{min-height:150px;border-radius:28px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border:1px solid rgba(10,124,110,.10);box-shadow:0 22px 55px rgba(10,124,110,.08)}.stat:before{right:-34px;top:-42px;width:140px;height:140px}.stat-head{font-size:15px}.stat-value{font-size:34px}.card,.panel,.form-card,.category{border-radius:30px;border:1px solid rgba(10,124,110,.10);box-shadow:0 28px 70px rgba(10,124,110,.09);background:rgba(255,255,255,.9);backdrop-filter:blur(18px)}.hero-card{border:0;background:linear-gradient(140deg,#083f38 0%,#0A7C6E 58%,#109985 100%);box-shadow:0 30px 75px rgba(10,124,110,.22)}.hero-card:after{right:34px;top:30px;width:150px;height:90px;background:linear-gradient(135deg,rgba(245,158,11,.65),rgba(255,107,53,.28));filter:blur(.2px)}.mini{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.16);border-radius:20px}.category-grid{gap:18px}.category{min-height:150px;padding:24px}.category:hover{transform:translateY(-5px);box-shadow:0 34px 80px rgba(10,124,110,.14)}.category .icon{border-radius:18px;background:#fff3d7;color:#F59E0B}.calendar-shell{grid-template-columns:minmax(0,1fr) 330px;gap:26px;margin-top:26px}.calendar-card{padding:30px}.calendar-title{font-size:28px;color:#083f38}.calendar-head p{font-size:16px}.calendar-week{font-size:13px;color:#60736e}.calendar-day{min-height:98px;border-radius:18px;background:rgba(255,255,255,.72);border:1px solid rgba(10,124,110,.10)}.calendar-day:hover{transform:translateY(-3px);box-shadow:0 16px 35px rgba(10,124,110,.12)}.calendar-day.is-selected{background:linear-gradient(135deg,#fff0e9,#fff8ed);border-color:#FF6B35;box-shadow:0 18px 40px rgba(255,107,53,.18)}.calendar-day.is-today{background:#fff;border-color:#0A7C6E;box-shadow:0 0 0 4px rgba(10,124,110,.10)}.calendar-date span:first-child{font-size:18px}.calendar-event{border-radius:12px;background:#e4f5f1;color:#083f38}.schedule-side .panel,.schedule-side .category{min-height:auto}.item{border-radius:18px;border:1px solid rgba(10,124,110,.08);background:#fbfefd}.empty{border-radius:20px;background:#f7fbf9;color:#6d7b78}.footer{padding:36px 0 8px;color:#7d8b86}.footer span{font-weight:900}.btn{border-radius:16px}.field input,.field select,.field textarea{border-radius:16px;background:#fbfefd}.panel h2,.form-card h2{color:#0b2f2a}.panel p,.form-card p{color:#6c778f}
         .stat:before,.hero-card:after{display:none}.stat{border-top:4px solid rgba(10,124,110,.18)}.stat:nth-child(2){border-top-color:rgba(245,158,11,.35)}.stat:nth-child(3){border-top-color:rgba(255,107,53,.35)}.stat:nth-child(4){border-top-color:rgba(10,124,110,.28)}.hero-card{background:linear-gradient(135deg,#083f38 0%,#0A7C6E 100%)}.hero-card:before{content:"";position:absolute;inset:auto 0 0 0;height:6px;background:linear-gradient(90deg,#0A7C6E,#F59E0B,#FF6B35)}.category .icon,.icon{border-radius:14px}.calendar-day.is-today .calendar-date span:first-child,.calendar-day.is-selected .calendar-date span:first-child{border-radius:10px}
-        .map-card{overflow:hidden}.leaflet-map{height:420px;min-height:320px;border-radius:22px;border:1px solid var(--border);overflow:hidden;background:#e4f5f1}.map-help{display:flex;align-items:center;gap:10px;margin-top:12px;color:var(--muted);font-size:13px}.leaflet-popup-content{font-family:Poppins,Inter,ui-sans-serif,system-ui,sans-serif}.leaflet-popup-content strong{display:block;margin-bottom:4px;color:#083f38}.leaflet-popup-content span{display:block;color:#737b91;font-size:12px}.leaflet-container a{color:#0A7C6E}
+        .map-card{overflow:hidden}.leaflet-map{width:100%;height:420px;min-height:320px;border-radius:22px;border:1px solid var(--border);overflow:hidden;background:#e4f5f1}.leaflet-map.leaflet-container{height:420px}.leaflet-container img,.leaflet-container .leaflet-tile{max-width:none!important;max-height:none!important}.leaflet-container{font:inherit}.map-help{display:flex;align-items:center;gap:10px;margin-top:12px;color:var(--muted);font-size:13px}.map-search{display:grid;grid-template-columns:1fr auto;gap:10px;margin:14px 0}.map-search input{width:100%;height:46px;border:1px solid var(--border);border-radius:16px;padding:0 14px;background:#fff;color:var(--text)}.map-search-results{display:grid;gap:8px;margin-bottom:14px}.map-search-result{width:100%;border:1px solid var(--border);border-radius:16px;background:#fff;padding:10px 12px;text-align:left;color:var(--text);cursor:pointer}.map-search-result:hover{border-color:#0A7C6E;background:#f2faf7}.map-search-result strong{display:block;font-size:13px}.map-search-result span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.leaflet-popup-content{font-family:Poppins,Inter,ui-sans-serif,system-ui,sans-serif}.leaflet-popup-content strong{display:block;margin-bottom:4px;color:#083f38}.leaflet-popup-content span{display:block;color:#737b91;font-size:12px}.leaflet-container a{color:#0A7C6E}
         @media(max-width:1180px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto}.nav{grid-template-columns:repeat(3,minmax(0,1fr))}.stats,.category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2,.calendar-shell{grid-template-columns:1fr}.search-box{display:none}.topbar{margin:0;border-radius:0}.content{padding:24px}.sidebar{border-radius:0}}
         @media(max-width:720px){.topbar{height:auto;align-items:flex-start;flex-direction:column;padding:18px}.content,.sidebar{padding:18px}.item{align-items:flex-start;flex-direction:column}.stats,.grid-3,.category-grid,.form-grid,.mini-row,.nav{grid-template-columns:1fr}.profile{width:100%}.actions{width:100%;justify-content:flex-end}.title{font-size:26px}.top-actions{flex-wrap:wrap}.calendar-week,.calendar-grid{gap:6px}.calendar-day{min-height:82px;padding:8px}.calendar-event{display:none}.calendar-count{font-size:10px;padding:3px 6px}.calendar-title{font-size:20px}}
     </style>
@@ -28,6 +28,7 @@
             const defaultCenter = [-6.2000000, 106.8166660];
             let map;
             let pickedMarker;
+            let lastSearchResults = [];
 
             const readMarkers = () => {
                 const source = document.getElementById('vacation-map-markers');
@@ -38,6 +39,41 @@
             const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;',
             }[char]));
+
+            const dispatchPickedLocation = (latitude, longitude, address = null) => {
+                if (window.Livewire) window.Livewire.dispatch('vacation-map-picked', { latitude, longitude, address });
+            };
+
+            const setPickedMarker = (latitude, longitude, label = 'Lokasi dipilih') => {
+                if (!map) return;
+                const position = [Number(latitude), Number(longitude)];
+                if (pickedMarker) map.removeLayer(pickedMarker);
+                pickedMarker = L.marker(position).addTo(map).bindPopup(escapeHtml(label)).openPopup();
+                map.setView(position, 15);
+            };
+
+            const renderSearchResults = (items) => {
+                const target = document.getElementById('vacation-map-search-results');
+                if (!target) return;
+                if (!items.length) {
+                    target.innerHTML = '<div class="empty">Lokasi tidak ditemukan.</div>';
+                    return;
+                }
+                target.innerHTML = items.map((item, index) => {
+                    const title = item.name || item.display_name?.split(',')[0] || 'Lokasi';
+                    return `<button class="map-search-result" type="button" data-map-search-index="${index}"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(item.display_name)}</span></button>`;
+                }).join('');
+            };
+
+            const searchPlaces = async (query) => {
+                const target = document.getElementById('vacation-map-search-results');
+                if (target) target.innerHTML = '<div class="empty">Mencari lokasi...</div>';
+                const params = new URLSearchParams({ format: 'jsonv2', limit: '5', addressdetails: '1', q: query });
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`);
+                if (!response.ok) throw new Error('Gagal mencari lokasi.');
+                lastSearchResults = await response.json();
+                renderSearchResults(lastSearchResults);
+            };
 
             const initVacationMap = () => {
                 const el = document.getElementById('vacation-map');
@@ -72,17 +108,41 @@
                 map.on('click', (event) => {
                     const lat = Number(event.latlng.lat.toFixed(7));
                     const lng = Number(event.latlng.lng.toFixed(7));
-                    if (pickedMarker) map.removeLayer(pickedMarker);
-                    pickedMarker = L.marker([lat, lng]).addTo(map).bindPopup('Lokasi dipilih').openPopup();
-                    if (window.Livewire) window.Livewire.dispatch('vacation-map-picked', { latitude: lat, longitude: lng });
+                    setPickedMarker(lat, lng);
+                    dispatchPickedLocation(lat, lng);
                 });
 
-                setTimeout(() => map.invalidateSize(), 120);
+                [80, 250, 600, 1100].forEach((delay) => {
+                    setTimeout(() => {
+                        if (map) map.invalidateSize(true);
+                    }, delay);
+                });
             };
 
             document.addEventListener('livewire:init', initVacationMap);
             document.addEventListener('livewire:navigated', initVacationMap);
             document.addEventListener('DOMContentLoaded', initVacationMap);
+            document.addEventListener('submit', (event) => {
+                if (event.target?.id !== 'vacation-map-search-form') return;
+                event.preventDefault();
+                const input = document.getElementById('vacation-map-search');
+                const query = input?.value?.trim();
+                if (!query) return;
+                searchPlaces(query).catch(() => {
+                    const target = document.getElementById('vacation-map-search-results');
+                    if (target) target.innerHTML = '<div class="errors">Gagal mencari lokasi. Coba kata kunci lain.</div>';
+                });
+            });
+            document.addEventListener('click', (event) => {
+                const button = event.target?.closest?.('[data-map-search-index]');
+                if (!button) return;
+                const item = lastSearchResults[Number(button.dataset.mapSearchIndex)];
+                if (!item) return;
+                const lat = Number(Number(item.lat).toFixed(7));
+                const lng = Number(Number(item.lon).toFixed(7));
+                setPickedMarker(lat, lng, item.display_name || 'Lokasi dipilih');
+                dispatchPickedLocation(lat, lng, item.display_name || null);
+            });
         })();
     </script>
 </body>

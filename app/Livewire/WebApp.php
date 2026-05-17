@@ -346,18 +346,20 @@ class WebApp extends Component
     }
 
     #[On('vacation-map-picked')]
-    public function setVacationCoordinates(float $latitude, float $longitude): void
+    public function setVacationCoordinates(float $latitude, float $longitude, ?string $address = null): void
     {
         $this->vacationLatitude = number_format($latitude, 7, '.', '');
         $this->vacationLongitude = number_format($longitude, 7, '.', '');
 
-        if ($this->vacationMapUrl === '') {
-            $this->vacationMapUrl = sprintf(
-                'https://www.openstreetmap.org/?mlat=%1$.7f&mlon=%2$.7f#map=15/%1$.7f/%2$.7f',
-                $latitude,
-                $longitude,
-            );
+        if ($address) {
+            $this->vacationAddress = $address;
         }
+
+        $this->vacationMapUrl = sprintf(
+            'https://www.openstreetmap.org/?mlat=%1$.7f&mlon=%2$.7f#map=15/%1$.7f/%2$.7f',
+            $latitude,
+            $longitude,
+        );
     }
 
     public function storeShare(): void
