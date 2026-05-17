@@ -21,8 +21,16 @@ class DataShareController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $request->merge([
+            'email' => strtolower(trim((string) $request->input('email'))),
+        ]);
+
         $data = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
+        ], [
+            'email.required' => 'Email pengguna wajib diisi.',
+            'email.email' => 'Format email pengguna tidak valid.',
+            'email.exists' => 'Email ini belum terdaftar di AlfaApps pada database server ini.',
         ]);
 
         $target = User::where('email', $data['email'])->firstOrFail();
