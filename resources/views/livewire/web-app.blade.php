@@ -46,10 +46,10 @@
                 </label>
             </div>
             <div class="top-actions">
-                <button class="icon-button add" type="button" aria-label="Tambah"><i class="fa-solid fa-plus"></i></button>
-                <button class="icon-button" type="button" aria-label="Mode"><i class="fa-solid fa-moon"></i></button>
-                <button class="icon-button" type="button" aria-label="Pesan"><i class="fa-regular fa-message"></i><span class="notif">{{ $summary['plans_today'] }}</span></button>
-                <button class="icon-button" type="button" aria-label="Notifikasi"><i class="fa-regular fa-bell"></i><span class="notif">{{ $summary['today_schedule_count'] }}</span></button>
+                <button class="icon-button add" type="button" aria-label="Tambah" data-top-action="focus-form"><i class="fa-solid fa-plus"></i></button>
+                <button class="icon-button" type="button" aria-label="Mode" data-top-action="toggle-theme"><i class="fa-solid fa-moon"></i></button>
+                <button class="icon-button" type="button" aria-label="Pesan" data-top-action="navigate" data-href="{{ route('web.work-plans.index') }}"><i class="fa-regular fa-message"></i><span class="notif">{{ $summary['plans_today'] }}</span></button>
+                <button class="icon-button" type="button" aria-label="Notifikasi" data-top-action="navigate" data-href="{{ route('web.life-schedules.index') }}"><i class="fa-regular fa-bell"></i><span class="notif">{{ $summary['today_schedule_count'] }}</span></button>
                 <form method="POST" action="{{ route('logout') }}">@csrf<button class="login-pill" type="submit">Logout</button></form>
             </div>
         </header>
