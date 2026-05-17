@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\LifeSchedule;
+use App\Support\SharedData;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,10 +17,10 @@ class LifeScheduleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        $userIds = SharedData::userIds($request->user());
         $date = $request->query('date');
 
-        $base = LifeSchedule::where('user_id', $userId)
+        $base = LifeSchedule::whereIn('user_id', $userIds)
             ->orderBy('start_at')
             ->get();
 
@@ -60,7 +61,7 @@ class LifeScheduleController extends Controller
 
     public function show(Request $request, LifeSchedule $lifeSchedule): JsonResponse
     {
-        $this->authorizeOwner($request, $lifeSchedule);
+        $this->authorizeVisible($request, $lifeSchedule);
         return response()->json([
             'success' => true,
             'message' => 'OK',
@@ -133,5 +134,10 @@ class LifeScheduleController extends Controller
     private function authorizeOwner(Request $request, LifeSchedule $schedule): void
     {
         abort_unless($schedule->user_id === $request->user()->id, 403, 'Bukan milik Anda.');
+    }
+
+    private function authorizeVisible(Request $request, LifeSchedule $schedule): void
+    {
+        abort_unless(in_array((int) $schedule->user_id, SharedData::userIds($request->user()), true), 403, 'Data tidak dibagikan dengan Anda.');
     }
 }

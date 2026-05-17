@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DataShareController;
 use App\Http\Controllers\Api\FinanceRecordController;
 use App\Http\Controllers\Api\IncomeTargetController;
 use App\Http\Controllers\Api\LearningController;
@@ -35,6 +36,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Dashboard
     Route::get('dashboard/summary', [DashboardController::class, 'summary']);
+
+    // Data sharing
+    Route::get('data-shares', [DataShareController::class, 'index']);
+    Route::post('data-shares', [DataShareController::class, 'store']);
+    Route::delete('data-shares/{dataShare}', [DataShareController::class, 'destroy']);
 
     // Finance records
     Route::apiResource('finance-records', FinanceRecordController::class)

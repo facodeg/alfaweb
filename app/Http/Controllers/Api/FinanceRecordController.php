@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\FinanceRecord;
+use App\Support\SharedData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,7 @@ class FinanceRecordController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = FinanceRecord::query()
-            ->where('user_id', $request->user()->id)
+            ->whereIn('user_id', SharedData::userIds($request->user()))
             ->orderByDesc('occurred_at');
 
         if ($type = $request->query('type')) {
@@ -34,9 +35,9 @@ class FinanceRecordController extends Controller
         $records = $query->limit((int) $request->query('limit', 100))->get();
 
         $totals = [
-            'income' => (float) FinanceRecord::where('user_id', $request->user()->id)
+            'income' => (float) FinanceRecord::whereIn('user_id', SharedData::userIds($request->user()))
                 ->where('type', 'income')->sum('amount'),
-            'expense' => (float) FinanceRecord::where('user_id', $request->user()->id)
+            'expense' => (float) FinanceRecord::whereIn('user_id', SharedData::userIds($request->user()))
                 ->where('type', 'expense')->sum('amount'),
         ];
         $totals['balance'] = $totals['income'] - $totals['expense'];
@@ -64,7 +65,7 @@ class FinanceRecordController extends Controller
 
     public function show(Request $request, FinanceRecord $financeRecord): JsonResponse
     {
-        $this->authorizeOwner($request, $financeRecord);
+        $this->authorizeVisible($request, $financeRecord);
         return response()->json([
             'success' => true,
             'message' => 'OK',
@@ -109,5 +110,10 @@ class FinanceRecordController extends Controller
     private function authorizeOwner(Request $request, FinanceRecord $record): void
     {
         abort_unless($record->user_id === $request->user()->id, 403, 'Bukan milik Anda.');
+    }
+
+    private function authorizeVisible(Request $request, FinanceRecord $record): void
+    {
+        abort_unless(in_array((int) $record->user_id, SharedData::userIds($request->user()), true), 403, 'Data tidak dibagikan dengan Anda.');
     }
 }

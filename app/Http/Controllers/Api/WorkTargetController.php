@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\WorkTarget;
+use App\Support\SharedData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,7 @@ class WorkTargetController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = WorkTarget::query()
-            ->where('user_id', $request->user()->id)
+            ->whereIn('user_id', SharedData::userIds($request->user()))
             ->orderByRaw("FIELD(status, 'on_progress', 'pending', 'done')")
             ->orderByDesc('updated_at');
 
@@ -42,7 +43,7 @@ class WorkTargetController extends Controller
 
     public function show(Request $request, WorkTarget $workTarget): JsonResponse
     {
-        $this->authorizeOwner($request, $workTarget);
+        $this->authorizeVisible($request, $workTarget);
         $workTarget->load('plans');
         return response()->json([
             'success' => true,
@@ -90,5 +91,10 @@ class WorkTargetController extends Controller
     private function authorizeOwner(Request $request, WorkTarget $target): void
     {
         abort_unless($target->user_id === $request->user()->id, 403, 'Bukan milik Anda.');
+    }
+
+    private function authorizeVisible(Request $request, WorkTarget $target): void
+    {
+        abort_unless(in_array((int) $target->user_id, SharedData::userIds($request->user()), true), 403, 'Data tidak dibagikan dengan Anda.');
     }
 }

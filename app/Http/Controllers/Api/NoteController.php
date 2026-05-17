@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Note;
+use App\Support\SharedData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,7 @@ class NoteController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Note::where('user_id', $request->user()->id)
+        $query = Note::whereIn('user_id', SharedData::userIds($request->user()))
             ->orderByDesc('is_pinned')
             ->orderByDesc('updated_at');
 
@@ -44,7 +45,7 @@ class NoteController extends Controller
 
     public function show(Request $request, Note $note): JsonResponse
     {
-        $this->authorizeOwner($request, $note);
+        $this->authorizeVisible($request, $note);
         return response()->json([
             'success' => true,
             'message' => 'OK',
@@ -102,5 +103,10 @@ class NoteController extends Controller
     private function authorizeOwner(Request $request, Note $note): void
     {
         abort_unless($note->user_id === $request->user()->id, 403, 'Bukan milik Anda.');
+    }
+
+    private function authorizeVisible(Request $request, Note $note): void
+    {
+        abort_unless(in_array((int) $note->user_id, SharedData::userIds($request->user()), true), 403, 'Data tidak dibagikan dengan Anda.');
     }
 }

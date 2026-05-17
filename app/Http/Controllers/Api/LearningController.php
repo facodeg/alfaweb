@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Learning;
+use App\Support\SharedData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,7 @@ class LearningController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Learning::where('user_id', $request->user()->id)
+        $query = Learning::whereIn('user_id', SharedData::userIds($request->user()))
             ->orderByRaw("FIELD(status, 'learning', 'planned', 'done')")
             ->orderByDesc('updated_at');
 
@@ -41,7 +42,7 @@ class LearningController extends Controller
 
     public function show(Request $request, Learning $learning): JsonResponse
     {
-        $this->authorizeOwner($request, $learning);
+        $this->authorizeVisible($request, $learning);
         return response()->json([
             'success' => true,
             'message' => 'OK',
@@ -87,5 +88,10 @@ class LearningController extends Controller
     private function authorizeOwner(Request $request, Learning $learning): void
     {
         abort_unless($learning->user_id === $request->user()->id, 403, 'Bukan milik Anda.');
+    }
+
+    private function authorizeVisible(Request $request, Learning $learning): void
+    {
+        abort_unless(in_array((int) $learning->user_id, SharedData::userIds($request->user()), true), 403, 'Data tidak dibagikan dengan Anda.');
     }
 }

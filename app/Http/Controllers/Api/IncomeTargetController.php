@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\FinanceRecord;
 use App\Models\IncomeTarget;
+use App\Support\SharedData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,13 +13,15 @@ class IncomeTargetController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $targets = IncomeTarget::where('user_id', $request->user()->id)
+        $userIds = SharedData::userIds($request->user());
+
+        $targets = IncomeTarget::whereIn('user_id', $userIds)
             ->orderByDesc('period_start')
             ->get();
 
         // Hitung realisasi (income) per target sesuai rentang periode.
-        $targets->each(function (IncomeTarget $target) use ($request) {
-            $realized = (float) FinanceRecord::where('user_id', $request->user()->id)
+        $targets->each(function (IncomeTarget $target) use ($userIds) {
+            $realized = (float) FinanceRecord::whereIn('user_id', $userIds)
                 ->where('type', 'income')
                 ->whereBetween('occurred_at', [
                     $target->period_start->startOfDay(),
@@ -56,7 +59,7 @@ class IncomeTargetController extends Controller
 
     public function show(Request $request, IncomeTarget $incomeTarget): JsonResponse
     {
-        $this->authorizeOwner($request, $incomeTarget);
+        $this->authorizeVisible($request, $incomeTarget);
         return response()->json([
             'success' => true,
             'message' => 'OK',
@@ -102,5 +105,10 @@ class IncomeTargetController extends Controller
     private function authorizeOwner(Request $request, IncomeTarget $target): void
     {
         abort_unless($target->user_id === $request->user()->id, 403, 'Bukan milik Anda.');
+    }
+
+    private function authorizeVisible(Request $request, IncomeTarget $target): void
+    {
+        abort_unless(in_array((int) $target->user_id, SharedData::userIds($request->user()), true), 403, 'Data tidak dibagikan dengan Anda.');
     }
 }

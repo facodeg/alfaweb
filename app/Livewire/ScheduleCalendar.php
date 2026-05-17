@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\LifeSchedule;
+use App\Support\SharedData;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\On;
@@ -86,7 +87,7 @@ class ScheduleCalendar extends Component
             return collect();
         }
 
-        return LifeSchedule::where('user_id', $user->id)
+        return LifeSchedule::whereIn('user_id', SharedData::userIds($user))
             ->orderBy('start_at')
             ->get();
     }

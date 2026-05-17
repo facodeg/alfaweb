@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/work-targets', fn () => view('app', ['page' => 'work-targets']))->name('web.work-targets.index');
     Route::get('/work-plans', fn () => view('app', ['page' => 'work-plans']))->name('web.work-plans.index');
     Route::get('/life-schedules', fn () => view('app', ['page' => 'life-schedules']))->name('web.life-schedules.index');
+    Route::get('/data-sharing', fn () => view('app', ['page' => 'data-sharing']))->name('web.data-sharing.index');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

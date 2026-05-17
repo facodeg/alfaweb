@@ -8,6 +8,7 @@ use App\Models\IncomeTarget;
 use App\Models\LifeSchedule;
 use App\Models\WorkPlan;
 use App\Models\WorkTarget;
+use App\Support\SharedData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,32 +16,32 @@ class DashboardController extends Controller
 {
     public function summary(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        $userIds = SharedData::userIds($request->user());
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        $monthIncome = (float) FinanceRecord::where('user_id', $userId)
+        $monthIncome = (float) FinanceRecord::whereIn('user_id', $userIds)
             ->where('type', 'income')
             ->whereBetween('occurred_at', [$startOfMonth, $endOfMonth])
             ->sum('amount');
 
-        $monthExpense = (float) FinanceRecord::where('user_id', $userId)
+        $monthExpense = (float) FinanceRecord::whereIn('user_id', $userIds)
             ->where('type', 'expense')
             ->whereBetween('occurred_at', [$startOfMonth, $endOfMonth])
             ->sum('amount');
 
-        $todayIncome = (float) FinanceRecord::where('user_id', $userId)
+        $todayIncome = (float) FinanceRecord::whereIn('user_id', $userIds)
             ->where('type', 'income')
             ->whereDate('occurred_at', $now->toDateString())
             ->sum('amount');
 
-        $todayExpense = (float) FinanceRecord::where('user_id', $userId)
+        $todayExpense = (float) FinanceRecord::whereIn('user_id', $userIds)
             ->where('type', 'expense')
             ->whereDate('occurred_at', $now->toDateString())
             ->sum('amount');
 
-        $activeTarget = IncomeTarget::where('user_id', $userId)
+        $activeTarget = IncomeTarget::whereIn('user_id', $userIds)
             ->whereDate('period_start', '<=', $now)
             ->whereDate('period_end', '>=', $now)
             ->orderByDesc('period_start')
@@ -48,7 +49,7 @@ class DashboardController extends Controller
 
         $activeTargetData = null;
         if ($activeTarget) {
-            $realized = (float) FinanceRecord::where('user_id', $userId)
+            $realized = (float) FinanceRecord::whereIn('user_id', $userIds)
                 ->where('type', 'income')
                 ->whereBetween('occurred_at', [
                     $activeTarget->period_start->startOfDay(),
@@ -84,24 +85,24 @@ class DashboardController extends Controller
                 ],
                 'active_income_target' => $activeTargetData,
                 'work' => [
-                    'targets_open' => WorkTarget::where('user_id', $userId)
+                    'targets_open' => WorkTarget::whereIn('user_id', $userIds)
                         ->whereIn('status', ['pending', 'on_progress'])
                         ->count(),
-                    'targets_done' => WorkTarget::where('user_id', $userId)
+                    'targets_done' => WorkTarget::whereIn('user_id', $userIds)
                         ->where('status', 'done')
                         ->count(),
-                    'plans_today' => WorkPlan::where('user_id', $userId)
+                    'plans_today' => WorkPlan::whereIn('user_id', $userIds)
                         ->where('is_done', false)
                         ->whereDate('due_at', $now->toDateString())
                         ->count(),
-                    'plans_overdue' => WorkPlan::where('user_id', $userId)
+                    'plans_overdue' => WorkPlan::whereIn('user_id', $userIds)
                         ->where('is_done', false)
                         ->whereNotNull('due_at')
                         ->whereDate('due_at', '<', $now->toDateString())
                         ->count(),
                 ],
                 'schedule' => [
-                    'today_count' => LifeSchedule::where('user_id', $userId)
+                    'today_count' => LifeSchedule::whereIn('user_id', $userIds)
                         ->get()
                         ->filter(fn ($s) => $s->occursOn($now))
                         ->count(),

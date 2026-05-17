@@ -5,8 +5,11 @@ namespace App\Livewire;
 use App\Models\FinanceRecord;
 use App\Models\IncomeTarget;
 use App\Models\LifeSchedule;
+use App\Models\DataShare;
+use App\Models\User;
 use App\Models\WorkPlan;
 use App\Models\WorkTarget;
+use App\Support\SharedData;
 use Illuminate\Support\Collection;
 use Livewire\Component;
 
@@ -49,6 +52,7 @@ class WebApp extends Component
     public string $scheduleEndAt = '';
     public string $scheduleRepeat = 'none';
     public string $scheduleColor = '#5B5FEF';
+    public string $shareEmail = '';
 
     public function mount(string $page = 'dashboard', ?string $financeFilter = null, ?string $workTargetFilter = null, ?string $month = null): void
     {
@@ -247,6 +251,47 @@ class WebApp extends Component
         session()->flash('status', 'Jadwal dihapus.');
     }
 
+    public function storeShare(): void
+    {
+        $data = $this->validate([
+            'shareEmail' => ['required', 'email', 'exists:users,email'],
+        ]);
+
+        $target = User::where('email', $data['shareEmail'])->firstOrFail();
+
+        if ($target->id === auth()->id()) {
+            $this->addError('shareEmail', 'Tidak bisa berbagi dengan email sendiri.');
+            return;
+        }
+
+        $ownerId = min(auth()->id(), $target->id);
+        $sharedWithId = max(auth()->id(), $target->id);
+
+        DataShare::firstOrCreate([
+            'owner_id' => $ownerId,
+            'shared_with_id' => $sharedWithId,
+        ]);
+
+        $this->shareEmail = '';
+        $this->dispatch('schedule-updated');
+        session()->flash('status', 'Berbagi data berhasil diaktifkan.');
+    }
+
+    public function destroyShare(int $id): void
+    {
+        $share = DataShare::query()
+            ->where('id', $id)
+            ->where(function ($query) {
+                $query->where('owner_id', auth()->id())
+                    ->orWhere('shared_with_id', auth()->id());
+            })
+            ->firstOrFail();
+
+        $share->delete();
+        $this->dispatch('schedule-updated');
+        session()->flash('status', 'Berbagi data dihentikan.');
+    }
+
     public function render()
     {
         return view('livewire.web-app', $this->viewData());
@@ -264,43 +309,44 @@ class WebApp extends Component
             'activeTarget' => $activeTarget,
             'targetRealized' => $targetRealized,
             'targetProgress' => $targetProgress,
-            'recentRecords' => FinanceRecord::where('user_id', $user->id)->latest('occurred_at')->limit(5)->get(),
-            'openPlans' => WorkPlan::where('user_id', $user->id)->where('is_done', false)->orderByRaw('due_at IS NULL')->orderBy('due_at')->limit(5)->get(),
+            'recentRecords' => FinanceRecord::whereIn('user_id', $this->visibleUserIds())->latest('occurred_at')->limit(5)->get(),
+            'openPlans' => WorkPlan::whereIn('user_id', $this->visibleUserIds())->where('is_done', false)->orderByRaw('due_at IS NULL')->orderBy('due_at')->limit(5)->get(),
             'records' => $this->financeRecords(),
             'financeTotals' => $this->financeTotals(),
             'targets' => $this->incomeTargets(),
             'workTargets' => $this->workTargets(),
             'allWorkTargets' => WorkTarget::where('user_id', $user->id)->latest('updated_at')->get(),
-            'workPlans' => WorkPlan::with('workTarget')->where('user_id', $user->id)->orderBy('is_done')->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")->orderByRaw('due_at IS NULL')->orderBy('due_at')->get(),
-            'schedules' => LifeSchedule::where('user_id', $user->id)->orderBy('start_at')->get(),
+            'workPlans' => WorkPlan::with('workTarget')->whereIn('user_id', $this->visibleUserIds())->orderBy('is_done')->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")->orderByRaw('due_at IS NULL')->orderBy('due_at')->get(),
+            'schedules' => LifeSchedule::whereIn('user_id', $this->visibleUserIds())->orderBy('start_at')->get(),
+            'shares' => $this->shares(),
         ];
     }
 
     private function summary(): array
     {
-        $userId = auth()->id();
+        $userIds = $this->visibleUserIds();
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        $monthIncome = (float) FinanceRecord::where('user_id', $userId)->where('type', 'income')->whereBetween('occurred_at', [$startOfMonth, $endOfMonth])->sum('amount');
-        $monthExpense = (float) FinanceRecord::where('user_id', $userId)->where('type', 'expense')->whereBetween('occurred_at', [$startOfMonth, $endOfMonth])->sum('amount');
+        $monthIncome = (float) FinanceRecord::whereIn('user_id', $userIds)->where('type', 'income')->whereBetween('occurred_at', [$startOfMonth, $endOfMonth])->sum('amount');
+        $monthExpense = (float) FinanceRecord::whereIn('user_id', $userIds)->where('type', 'expense')->whereBetween('occurred_at', [$startOfMonth, $endOfMonth])->sum('amount');
 
         return [
             'month_income' => $monthIncome,
             'month_expense' => $monthExpense,
             'month_balance' => $monthIncome - $monthExpense,
-            'today_income' => (float) FinanceRecord::where('user_id', $userId)->where('type', 'income')->whereDate('occurred_at', $now->toDateString())->sum('amount'),
-            'today_expense' => (float) FinanceRecord::where('user_id', $userId)->where('type', 'expense')->whereDate('occurred_at', $now->toDateString())->sum('amount'),
-            'plans_today' => WorkPlan::where('user_id', $userId)->where('is_done', false)->whereDate('due_at', $now->toDateString())->count(),
-            'plans_overdue' => WorkPlan::where('user_id', $userId)->where('is_done', false)->whereNotNull('due_at')->whereDate('due_at', '<', $now->toDateString())->count(),
-            'today_schedule_count' => LifeSchedule::where('user_id', $userId)->get()->filter(fn (LifeSchedule $schedule) => $schedule->occursOn($now))->count(),
+            'today_income' => (float) FinanceRecord::whereIn('user_id', $userIds)->where('type', 'income')->whereDate('occurred_at', $now->toDateString())->sum('amount'),
+            'today_expense' => (float) FinanceRecord::whereIn('user_id', $userIds)->where('type', 'expense')->whereDate('occurred_at', $now->toDateString())->sum('amount'),
+            'plans_today' => WorkPlan::whereIn('user_id', $userIds)->where('is_done', false)->whereDate('due_at', $now->toDateString())->count(),
+            'plans_overdue' => WorkPlan::whereIn('user_id', $userIds)->where('is_done', false)->whereNotNull('due_at')->whereDate('due_at', '<', $now->toDateString())->count(),
+            'today_schedule_count' => LifeSchedule::whereIn('user_id', $userIds)->get()->filter(fn (LifeSchedule $schedule) => $schedule->occursOn($now))->count(),
         ];
     }
 
     private function activeTargetData(): array
     {
-        $target = IncomeTarget::where('user_id', auth()->id())
+        $target = IncomeTarget::whereIn('user_id', $this->visibleUserIds())
             ->whereDate('period_start', '<=', now())
             ->whereDate('period_end', '>=', now())
             ->orderByDesc('period_start')
@@ -317,7 +363,7 @@ class WebApp extends Component
 
     private function financeRecords(): Collection
     {
-        $query = FinanceRecord::where('user_id', auth()->id())->latest('occurred_at');
+        $query = FinanceRecord::whereIn('user_id', $this->visibleUserIds())->latest('occurred_at');
 
         if ($this->financeFilter) {
             $query->where('type', $this->financeFilter);
@@ -328,15 +374,15 @@ class WebApp extends Component
 
     private function financeTotals(): array
     {
-        $income = (float) FinanceRecord::where('user_id', auth()->id())->where('type', 'income')->sum('amount');
-        $expense = (float) FinanceRecord::where('user_id', auth()->id())->where('type', 'expense')->sum('amount');
+        $income = (float) FinanceRecord::whereIn('user_id', $this->visibleUserIds())->where('type', 'income')->sum('amount');
+        $expense = (float) FinanceRecord::whereIn('user_id', $this->visibleUserIds())->where('type', 'expense')->sum('amount');
 
         return ['income' => $income, 'expense' => $expense, 'balance' => $income - $expense];
     }
 
     private function incomeTargets(): Collection
     {
-        return IncomeTarget::where('user_id', auth()->id())
+        return IncomeTarget::whereIn('user_id', $this->visibleUserIds())
             ->orderByDesc('period_start')
             ->get()
             ->map(function (IncomeTarget $target) {
@@ -349,7 +395,7 @@ class WebApp extends Component
 
     private function incomeTargetProgress(IncomeTarget $target): array
     {
-        $realized = (float) FinanceRecord::where('user_id', auth()->id())
+        $realized = (float) FinanceRecord::whereIn('user_id', $this->visibleUserIds())
             ->where('type', 'income')
             ->whereBetween('occurred_at', [$target->period_start->copy()->startOfDay(), $target->period_end->copy()->endOfDay()])
             ->sum('amount');
@@ -361,7 +407,7 @@ class WebApp extends Component
 
     private function workTargets(): Collection
     {
-        $query = WorkTarget::where('user_id', auth()->id())->latest('updated_at');
+        $query = WorkTarget::whereIn('user_id', $this->visibleUserIds())->latest('updated_at');
 
         if ($this->workTargetFilter) {
             $query->where('status', $this->workTargetFilter);
@@ -377,5 +423,20 @@ class WebApp extends Component
         $this->incomePeriodEnd = now()->endOfMonth()->toDateString();
         $this->scheduleStartAt = now()->format('Y-m-d\TH:i');
         $this->scheduleEndAt = now()->addHour()->format('Y-m-d\TH:i');
+    }
+
+    /** @return array<int> */
+    private function visibleUserIds(): array
+    {
+        return SharedData::userIds(auth()->user());
+    }
+
+    private function shares(): Collection
+    {
+        return DataShare::with(['owner', 'sharedWith'])
+            ->where('owner_id', auth()->id())
+            ->orWhere('shared_with_id', auth()->id())
+            ->latest()
+            ->get();
     }
 }
